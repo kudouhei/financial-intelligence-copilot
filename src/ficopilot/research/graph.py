@@ -1,9 +1,11 @@
-from typing import NotRequired, TypedDict
+from functools import partial
+from typing import Literal, NotRequired, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from ficopilot.contracts import Citation, Claim, ResearchRequest, ResearchResult
+from ficopilot.research.providers import SearchProvider
 
 
 class ResearchState(TypedDict):
@@ -24,20 +26,23 @@ def plan_node(state: ResearchState) -> dict[str, list[str]]:
     }
 
 
-def search_node(state: ResearchState) -> dict[str, list[Citation]]:
-    request = state["request"]
-    citation = Citation(
-        citation_id="fixture-company-a-risk",
-        title="Company A Annual Report",
-        url="https://example.com/company-a-annual-report",
-        published_at=None,
-        retrieved_at=request.as_of,
-        excerpt=(
-            "Company A identifies market risk and liquidity risk as material risks."
-        ),
-    )
+def search_node(
+    state: ResearchState,
+    *,
+    search_provider: SearchProvider,
+) -> dict[str, list[Citation]]:
+    citations = search_provider.search(state["request"])
 
-    return {"citations": [citation]}
+    return {"citations": citations}
+
+
+def route_after_search(
+    state: ResearchState,
+) -> Literal["synthesize", "no_evidence"]:
+    if state["citations"]:
+        return "synthesize"
+
+    return "no_evidence"
 
 
 def synthesize_node(
@@ -69,16 +74,45 @@ def synthesize_node(
     return {"result": result}
 
 
-def build_research_graph() -> CompiledStateGraph:
+def no_evidence_node(
+    state: ResearchState,
+) -> dict[str, ResearchResult]:
+    request = state["request"]
+
+    result = ResearchResult(
+        answer=("Insufficient evidence to answer the research question."),
+        claims=[],
+        citations=[],
+        as_of=request.as_of,
+        warnings=["No evidence was returned by the search provider."],
+        trace_id="deterministic-trace-001",
+    )
+
+    return {"result": result}
+
+
+def build_research_graph(
+    *,
+    search_provider: SearchProvider,
+) -> CompiledStateGraph:
     builder = StateGraph(ResearchState)
 
     builder.add_node("plan", plan_node)
-    builder.add_node("search", search_node)
+    builder.add_node("search", partial(search_node, search_provider=search_provider))
     builder.add_node("synthesize", synthesize_node)
+    builder.add_node("no_evidence", no_evidence_node)
 
     builder.add_edge(START, "plan")
     builder.add_edge("plan", "search")
-    builder.add_edge("search", "synthesize")
+    builder.add_conditional_edges(
+        "search",
+        route_after_search,
+        {
+            "synthesize": "synthesize",
+            "no_evidence": "no_evidence",
+        },
+    )
     builder.add_edge("synthesize", END)
+    builder.add_edge("no_evidence", END)
 
     return builder.compile()
