@@ -1,3 +1,13 @@
-from ficopilot.contracts.research import ResearchRequest
+from ficopilot.contracts.research import (
+    Citation,
+    Claim,
+    ResearchRequest,
+    ResearchResult,
+)
 
-__all__ = ["ResearchRequest"]
+__all__ = [
+    "Citation",
+    "Claim",
+    "ResearchRequest",
+    "ResearchResult",
+]

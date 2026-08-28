@@ -45,6 +45,7 @@ def test_research_request_rejects_naive_datetime() -> None:
 
     assert "timezone_aware" in error_types
 
+
 def test_research_request_rejects_blank_question() -> None:
     with pytest.raises(ValidationError) as exc_info:
         ResearchRequest(
@@ -55,3 +56,12 @@ def test_research_request_rejects_blank_question() -> None:
     error_types = {error["type"] for error in exc_info.value.errors()}
 
     assert "string_too_short" in error_types
+
+
+def test_research_request_normalizes_question_whitespace() -> None:
+    request = ResearchRequest(
+        question="  Analyse Company A  ",
+        as_of=datetime(2026, 8, 28, 12, 0, tzinfo=UTC),
+    )
+
+    assert request.question == "Analyse Company A"
