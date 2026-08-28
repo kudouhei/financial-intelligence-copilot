@@ -2,8 +2,10 @@ from datetime import UTC, datetime
 
 from ficopilot.contracts import (
     Citation,
+    Claim,
     ResearchRequest,
     ResearchResult,
+    SynthesisDraft,
 )
 from ficopilot.research.graph import build_research_graph
 
@@ -17,6 +19,29 @@ class FakeSearchProvider:
         self.requests.append(request)
 
         return self._citations[: request.max_sources]
+
+
+class FakeSynthesisProvider:
+    def __init__(self) -> None:
+        self.calls: list[tuple[ResearchRequest, list[Citation]]] = []
+
+    def synthesize(
+        self,
+        request: ResearchRequest,
+        citations: list[Citation],
+    ) -> SynthesisDraft:
+        self.calls.append((request, list(citations)))
+        citation = citations[0]
+
+        return SynthesisDraft(
+            answer=citation.excerpt,
+            claims=[
+                Claim(
+                    statement=citation.excerpt,
+                    citation_ids=[citation.citation_id],
+                )
+            ],
+        )
 
 
 def make_request() -> ResearchRequest:
@@ -42,12 +67,19 @@ def make_citation(request: ResearchRequest) -> Citation:
 
 def test_research_graph_runs_deterministic_vertical_slice() -> None:
     request = make_request()
-    provider = FakeSearchProvider([make_citation(request)])
-    graph = build_research_graph(search_provider=provider)
+    citation = make_citation(request)
+    search_provider = FakeSearchProvider([citation])
+    synthesis_provider = FakeSynthesisProvider()
+    graph = build_research_graph(
+        search_provider=search_provider,
+        synthesis_provider=synthesis_provider,
+    )
 
     final_state = graph.invoke({"request": request})
 
-    assert provider.requests == [request]
+    assert search_provider.requests == [request]
+    assert synthesis_provider.calls == [(request, [citation])]
+
     assert final_state["plan"] == [
         "Find reliable sources for: What are the main risks facing Company A?",
         "Synthesize claims with citation references",
@@ -66,8 +98,12 @@ def test_research_graph_runs_deterministic_vertical_slice() -> None:
 
 def test_research_graph_returns_controlled_no_evidence_result() -> None:
     request = make_request()
-    provider = FakeSearchProvider([])
-    graph = build_research_graph(search_provider=provider)
+    search_provider = FakeSearchProvider([])
+    synthesis_provider = FakeSynthesisProvider()
+    graph = build_research_graph(
+        search_provider=search_provider,
+        synthesis_provider=synthesis_provider,
+    )
 
     final_state = graph.invoke({"request": request})
     result = final_state["result"]
@@ -76,3 +112,5 @@ def test_research_graph_returns_controlled_no_evidence_result() -> None:
     assert result.claims == []
     assert result.citations == []
     assert result.warnings == ["No evidence was returned by the search provider."]
+
+    assert synthesis_provider.calls == []

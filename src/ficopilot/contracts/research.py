@@ -45,6 +45,17 @@ class Claim(BaseModel):
     citation_ids: list[str] = Field(min_length=1)
 
 
+class SynthesisDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1),
+    ]
+    claims: list[Claim]
+    warnings: list[str] = Field(default_factory=list)
+
+
 class ResearchResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

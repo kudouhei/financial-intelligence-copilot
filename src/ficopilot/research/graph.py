@@ -4,8 +4,11 @@ from typing import Literal, NotRequired, TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from ficopilot.contracts import Citation, Claim, ResearchRequest, ResearchResult
-from ficopilot.research.providers import SearchProvider
+from ficopilot.contracts import Citation, ResearchRequest, ResearchResult
+from ficopilot.research.providers import (
+    SearchProvider,
+    SynthesisProvider,
+)
 
 
 class ResearchState(TypedDict):
@@ -47,27 +50,22 @@ def route_after_search(
 
 def synthesize_node(
     state: ResearchState,
+    *,
+    synthesis_provider: SynthesisProvider,
 ) -> dict[str, ResearchResult]:
     request = state["request"]
     citations = state["citations"]
-    citation = citations[0]
+    draft = synthesis_provider.synthesize(
+        request,
+        citations,
+    )
 
     result = ResearchResult(
-        answer=(
-            "Company A identifies market risk and liquidity risk as material risks."
-        ),
-        claims=[
-            Claim(
-                statement=(
-                    "Company A identifies market risk and liquidity "
-                    "risk as material risks."
-                ),
-                citation_ids=[citation.citation_id],
-            )
-        ],
+        answer=draft.answer,
+        claims=draft.claims,
         citations=citations,
         as_of=request.as_of,
-        warnings=[],
+        warnings=draft.warnings,
         trace_id="deterministic-trace-001",
     )
 
@@ -94,12 +92,19 @@ def no_evidence_node(
 def build_research_graph(
     *,
     search_provider: SearchProvider,
+    synthesis_provider: SynthesisProvider,
 ) -> CompiledStateGraph:
     builder = StateGraph(ResearchState)
 
     builder.add_node("plan", plan_node)
     builder.add_node("search", partial(search_node, search_provider=search_provider))
-    builder.add_node("synthesize", synthesize_node)
+    builder.add_node(
+        "synthesize",
+        partial(
+            synthesize_node,
+            synthesis_provider=synthesis_provider,
+        ),
+    )
     builder.add_node("no_evidence", no_evidence_node)
 
     builder.add_edge(START, "plan")

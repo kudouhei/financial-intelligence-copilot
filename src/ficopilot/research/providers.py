@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from ficopilot.contracts import Citation, ResearchRequest
+from ficopilot.contracts import Citation, ResearchRequest, SynthesisDraft
 
 
 class SearchProvider(Protocol):
@@ -8,3 +8,11 @@ class SearchProvider(Protocol):
         self,
         request: ResearchRequest,
     ) -> list[Citation]: ...
+
+
+class SynthesisProvider(Protocol):
+    def synthesize(
+        self,
+        request: ResearchRequest,
+        citations: list[Citation],
+    ) -> SynthesisDraft: ...

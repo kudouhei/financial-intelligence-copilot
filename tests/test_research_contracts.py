@@ -3,7 +3,11 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from ficopilot.contracts.research import ResearchRequest
+from ficopilot.contracts import (
+    Claim,
+    ResearchRequest,
+    SynthesisDraft,
+)
 
 
 def test_research_request_accepts_valid_input() -> None:
@@ -65,3 +69,43 @@ def test_research_request_normalizes_question_whitespace() -> None:
     )
 
     assert request.question == "Analyse Company A"
+
+
+def test_synthesis_draft_contains_only_model_authored_content() -> None:
+    draft = SynthesisDraft(
+        answer="Company A faces market and liquidity risks.",
+        claims=[
+            Claim(
+                statement=(
+                    "Company A identifies market risk and "
+                    "liquidity risk as material risks."
+                ),
+                citation_ids=["source-1"],
+            )
+        ],
+    )
+
+    assert draft.warnings == []
+    assert set(draft.model_dump()) == {
+        "answer",
+        "claims",
+        "warnings",
+    }
+
+
+def test_synthesis_draft_rejects_system_owned_metadata() -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        SynthesisDraft(
+            answer="Company A faces market risk.",
+            claims=[
+                Claim(
+                    statement="Company A faces market risk.",
+                    citation_ids=["source-1"],
+                )
+            ],
+            trace_id="model-controlled-trace",
+        )
+
+    error_types = {error["type"] for error in exc_info.value.errors()}
+
+    assert "extra_forbidden" in error_types
