@@ -1,5 +1,8 @@
 from datetime import UTC, datetime
 
+import pytest
+from pydantic import ValidationError
+
 from ficopilot.contracts import (
     Citation,
     Claim,
@@ -39,6 +42,23 @@ class FakeSynthesisProvider:
                 Claim(
                     statement=citation.excerpt,
                     citation_ids=[citation.citation_id],
+                )
+            ],
+        )
+
+
+class HallucinatingSynthesisProvider:
+    def synthesize(
+        self,
+        request: ResearchRequest,
+        citations: list[Citation],
+    ) -> SynthesisDraft:
+        return SynthesisDraft(
+            answer="An unsupported model-generated answer.",
+            claims=[
+                Claim(
+                    statement=("This claim is not supported by retrieved evidence."),
+                    citation_ids=["hallucinated-source"],
                 )
             ],
         )
@@ -114,3 +134,20 @@ def test_research_graph_returns_controlled_no_evidence_result() -> None:
     assert result.warnings == ["No evidence was returned by the search provider."]
 
     assert synthesis_provider.calls == []
+
+
+def test_research_graph_rejects_hallucinated_citation() -> None:
+    request = make_request()
+    citation = make_citation(request)
+    search_provider = FakeSearchProvider([citation])
+    synthesis_provider = HallucinatingSynthesisProvider()
+    graph = build_research_graph(
+        search_provider=search_provider,
+        synthesis_provider=synthesis_provider,
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="hallucinated-source",
+    ):
+        graph.invoke({"request": request})
