@@ -95,7 +95,10 @@ def test_research_graph_runs_deterministic_vertical_slice() -> None:
         synthesis_provider=synthesis_provider,
     )
 
-    final_state = graph.invoke({"request": request})
+    final_state = graph.invoke(
+        {"request": request},
+        context={"trace_id": "trace-success-001"},
+    )
 
     assert search_provider.requests == [request]
     assert synthesis_provider.calls == [(request, [citation])]
@@ -114,6 +117,7 @@ def test_research_graph_runs_deterministic_vertical_slice() -> None:
     assert result.claims[0].citation_ids == ["fixture-company-a-risk"]
     assert result.citations[0].citation_id == ("fixture-company-a-risk")
     assert result.as_of == request.as_of
+    assert result.trace_id == "trace-success-001"
 
 
 def test_research_graph_returns_controlled_no_evidence_result() -> None:
@@ -125,9 +129,13 @@ def test_research_graph_returns_controlled_no_evidence_result() -> None:
         synthesis_provider=synthesis_provider,
     )
 
-    final_state = graph.invoke({"request": request})
+    final_state = graph.invoke(
+        {"request": request},
+        context={"trace_id": "trace-no-evidence-001"},
+    )
     result = final_state["result"]
 
+    assert result.trace_id == "trace-no-evidence-001"
     assert result.answer == ("Insufficient evidence to answer the research question.")
     assert result.claims == []
     assert result.citations == []
@@ -150,4 +158,7 @@ def test_research_graph_rejects_hallucinated_citation() -> None:
         ValidationError,
         match="hallucinated-source",
     ):
-        graph.invoke({"request": request})
+        graph.invoke(
+            {"request": request},
+            context={"trace_id": "trace-hallucination-001"},
+        )
