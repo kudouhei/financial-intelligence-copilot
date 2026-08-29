@@ -3,12 +3,17 @@ from typing import Literal, NotRequired, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.runtime import Runtime
 
 from ficopilot.contracts import Citation, ResearchRequest, ResearchResult
 from ficopilot.research.providers import (
     SearchProvider,
     SynthesisProvider,
 )
+
+
+class ResearchContext(TypedDict):
+    trace_id: str
 
 
 class ResearchState(TypedDict):
@@ -50,6 +55,7 @@ def route_after_search(
 
 def synthesize_node(
     state: ResearchState,
+    runtime: Runtime[ResearchContext],
     *,
     synthesis_provider: SynthesisProvider,
 ) -> dict[str, ResearchResult]:
@@ -66,7 +72,7 @@ def synthesize_node(
         citations=citations,
         as_of=request.as_of,
         warnings=draft.warnings,
-        trace_id="deterministic-trace-001",
+        trace_id=runtime.context["trace_id"],
     )
 
     return {"result": result}
@@ -74,6 +80,7 @@ def synthesize_node(
 
 def no_evidence_node(
     state: ResearchState,
+    runtime: Runtime[ResearchContext],
 ) -> dict[str, ResearchResult]:
     request = state["request"]
 
@@ -83,7 +90,7 @@ def no_evidence_node(
         citations=[],
         as_of=request.as_of,
         warnings=["No evidence was returned by the search provider."],
-        trace_id="deterministic-trace-001",
+        trace_id=runtime.context["trace_id"],
     )
 
     return {"result": result}
@@ -94,7 +101,10 @@ def build_research_graph(
     search_provider: SearchProvider,
     synthesis_provider: SynthesisProvider,
 ) -> CompiledStateGraph:
-    builder = StateGraph(ResearchState)
+    builder = StateGraph(
+        ResearchState,
+        context_schema=ResearchContext,
+    )
 
     builder.add_node("plan", plan_node)
     builder.add_node("search", partial(search_node, search_provider=search_provider))

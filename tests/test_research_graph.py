@@ -130,10 +130,11 @@ def test_research_graph_returns_controlled_no_evidence_result() -> None:
     )
 
     final_state = graph.invoke(
-        {"request": request}, context={"trace_id": "trace-success-001"}
+        {"request": request},
+        context={"trace_id": "trace-no-evidence-001"},
     )
     result = final_state["result"]
-    assert result.trace_id == "trace-success-001"
+    assert result.trace_id == "trace-no-evidence-001"
     assert result.answer == ("Insufficient evidence to answer the research question.")
     assert result.claims == []
     assert result.citations == []
