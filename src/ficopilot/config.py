@@ -1,5 +1,18 @@
+from dataclasses import dataclass
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+@dataclass(frozen=True, slots=True)
+class AzureOpenAIConfig:
+    endpoint: str
+    api_key: str
+    deployment: str
+
+    @property
+    def base_url(self) -> str:
+        return f"{self.endpoint.rstrip('/')}/openai/v1/"
 
 
 class Settings(BaseSettings):
@@ -23,3 +36,27 @@ class Settings(BaseSettings):
             raise RuntimeError("TAVILY_API_KEY is required for live research.")
 
         return value
+
+    def require_azure_openai_config(self) -> AzureOpenAIConfig:
+        endpoint = (self.azure_openai_endpoint or "").strip()
+
+        deployment = (self.azure_openai_deployment or "").strip()
+
+        api_key = (
+            self.azure_openai_api_key.get_secret_value()
+            if self.azure_openai_api_key
+            else ""
+        ).strip()
+
+        if not endpoint or not api_key or not deployment:
+            raise RuntimeError(
+                "AZURE_OPENAI_ENDPOINT, "
+                "AZURE_OPENAI_API_KEY, and "
+                "AZURE_OPENAI_DEPLOYMENT are required."
+            )
+
+        return AzureOpenAIConfig(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment=deployment,
+        )
