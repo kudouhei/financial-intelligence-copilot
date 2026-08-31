@@ -30,7 +30,7 @@ type ResearchAction =
 
 
     function researchReducer(
-        state: ResearchState,
+        _state: ResearchState,
         action: ResearchAction,
       ): ResearchState {
         switch (action.type) {
