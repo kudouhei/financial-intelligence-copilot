@@ -1,7 +1,9 @@
 from datetime import UTC, datetime
 from hashlib import sha256
-from typing import Annotated, Literal
+from json import JSONDecodeError, loads
+from typing import Annotated, Any, Literal
 
+from langchain_core.tools import ToolException
 from langchain_tavily import TavilySearch
 from pydantic import (
     BaseModel,
@@ -30,6 +32,24 @@ class TavilyResult(BaseModel):
 class TavilyResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     results: list[TavilyResult] = Field(default_factory=list)
+
+
+def _coerce_tavily_payload(raw_response: Any) -> dict[str, Any]:
+    content = getattr(raw_response, "content", raw_response)
+
+    if isinstance(content, dict):
+        return content
+
+    if isinstance(content, str):
+        try:
+            parsed = loads(content)
+        except JSONDecodeError as error:
+            raise TypeError("Tavily returned an unexpected response.") from error
+
+        if isinstance(parsed, dict):
+            return parsed
+
+    raise TypeError("Tavily returned an unexpected response.")
 
 
 class TavilySearchProvider:
@@ -61,21 +81,24 @@ class TavilySearchProvider:
             include_raw_content=False,
             include_images=False,
         )
+        tool.handle_tool_error = False
 
-        raw_response = tool.invoke(
-            {
-                "query": request.question,
-                "end_date": request.as_of.date().isoformat(),
-            }
-        )
+        try:
+            raw_response = tool.invoke(
+                {
+                    "query": request.question,
+                    "end_date": request.as_of.date().isoformat(),
+                }
+            )
+        except ToolException:
+            return []
 
-        if not isinstance(raw_response, dict):
-            raise TypeError("Tavily returned an unexpected response.")
+        payload = _coerce_tavily_payload(raw_response)
 
-        if error := raw_response.get("error"):
+        if error := payload.get("error"):
             raise RuntimeError(f"Tavily search failed: {error}")
 
-        response = TavilyResponse.model_validate(raw_response)
+        response = TavilyResponse.model_validate(payload)
         retrieved_at = datetime.now(UTC)
 
         return [

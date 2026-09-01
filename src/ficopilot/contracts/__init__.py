@@ -3,6 +3,7 @@ from ficopilot.contracts.research import (
     Claim,
     ResearchRequest,
     ResearchResult,
+    SearchHit,
     SynthesisDraft,
 )
 
@@ -11,5 +12,6 @@ __all__ = [
     "Claim",
     "ResearchRequest",
     "ResearchResult",
+    "SearchHit",
     "SynthesisDraft",
 ]

@@ -23,6 +23,23 @@ class ResearchRequest(BaseModel):
     max_sources: int = Field(default=5, ge=1, le=20)
 
 
+class SearchHit(BaseModel):
+    """A candidate source returned by search, not yet verified evidence."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1),
+    ]
+    url: HttpUrl
+    snippet: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1),
+    ]
+    score: float | None = Field(default=None, ge=0, le=1)
+
+
 class Citation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

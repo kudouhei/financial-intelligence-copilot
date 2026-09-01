@@ -22,7 +22,7 @@ def create_live_app() -> FastAPI:
     graph = build_research_graph(
         search_provider=TavilySearchProvider(
             api_key=settings.require_tavily_api_key(),
-            search_depth="basic",
+            search_depth="advanced",
         ),
         synthesis_provider=(
             AzureOpenAISynthesisProvider(config=settings.require_azure_openai_config())
