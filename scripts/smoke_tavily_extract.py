@@ -1,44 +1,43 @@
-from langchain_tavily import TavilyExtract
+from datetime import UTC, datetime
 
 from ficopilot.config import Settings
-
-REPORT_URL = "https://www.microsoft.com/investor/reports/ar25/index.html"
+from ficopilot.contracts import ResearchRequest, SearchHit
+from ficopilot.research.tavily_extraction_provider import (
+    TavilyExtractionProvider,
+)
 
 
 def main() -> None:
     settings = Settings()
 
-    extractor = TavilyExtract(
-        tavily_api_key=settings.require_tavily_api_key(),
-        extract_depth="advanced",
-        format="text",
-        query=(
-            "Microsoft financial risks, risk factors, foreign exchange, "
-            "interest rate, credit risk, cybersecurity and competition"
+    request = ResearchRequest(
+        question=(
+            "What market-related financial risks does Microsoft "
+            "disclose in its 2025 Annual Report?"
         ),
-        chunks_per_source=3,
+        as_of=datetime.now(UTC),
+        max_sources=1,
     )
 
-    response = extractor.invoke({"urls": [REPORT_URL]})
+    hit = SearchHit(
+        title="Microsoft 2025 Annual Report",
+        url="https://www.microsoft.com/investor/reports/ar25/index.html",
+        snippet="Microsoft annual report for fiscal year 2025.",
+    )
 
-    if not isinstance(response, dict):
-        raise TypeError("Tavily Extract returned an unexpected response")
+    provider = TavilyExtractionProvider(
+        api_key=settings.require_tavily_api_key(),
+    )
 
-    if error := response.get("error"):
-        raise RuntimeError(f"Tavily Extract failed: {error}")
+    citations = provider.extract(request, [hit])
 
-    results = response.get("results", [])
-    failed_results = response.get("failed_results", [])
+    print(f"citations={len(citations)}")
 
-    print(f"results={len(results)}")
-    print(f"failed_results={len(failed_results)}")
-
-    for index, result in enumerate(results, start=1):
-        print(f"\n--- Result {index} ---")
-        print(f"url={result.get('url')}")
-
-        content = result.get("raw_content", "")
-        print(content[:5_000])
+    for citation in citations:
+        print(f"\nid={citation.citation_id}")
+        print(f"title={citation.title}")
+        print(f"url={citation.url}")
+        print(citation.excerpt[:3_000])
 
 
 if __name__ == "__main__":

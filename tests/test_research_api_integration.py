@@ -5,6 +5,7 @@ from ficopilot.contracts import (
     Citation,
     Claim,
     ResearchRequest,
+    SearchHit,
     SynthesisDraft,
 )
 from ficopilot.research.graph import build_research_graph
@@ -14,15 +15,32 @@ EVIDENCE_TEXT = "Company A identifies liquidity risk as a material financial ris
 
 
 class StaticSearchProvider:
-    def search(
+    def search(self, request: ResearchRequest) -> list[SearchHit]:
+        return [
+            SearchHit(
+                title="Company A Annual Report",
+                url="https://example.com/company-a-annual-report",
+                snippet="Search snippet only; not the extracted evidence.",
+            )
+        ][: request.max_sources]
+
+
+class StaticExtractionProvider:
+    def extract(
         self,
         request: ResearchRequest,
+        hits: list[SearchHit],
     ) -> list[Citation]:
+        if not hits:
+            return []
+
+        hit = hits[0]
+
         return [
             Citation(
                 citation_id="company-a-risk-001",
-                title="Company A Annual Report",
-                url="https://example.com/company-a-annual-report",
+                title=hit.title,
+                url=hit.url,
                 published_at=None,
                 retrieved_at=request.as_of,
                 excerpt=EVIDENCE_TEXT,
@@ -52,6 +70,7 @@ class EvidenceSynthesisProvider:
 def test_research_api_runs_complete_vertical_slice() -> None:
     graph = build_research_graph(
         search_provider=StaticSearchProvider(),
+        extraction_provider=StaticExtractionProvider(),
         synthesis_provider=EvidenceSynthesisProvider(),
     )
     service = LangGraphResearchService(graph=graph)

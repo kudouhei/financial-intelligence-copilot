@@ -5,6 +5,7 @@ from ficopilot.contracts import (
     Citation,
     Claim,
     ResearchRequest,
+    SearchHit,
     SynthesisDraft,
 )
 from ficopilot.research.graph import build_research_graph
@@ -16,18 +17,37 @@ DEMO_EVIDENCE_TEXT = (
 
 
 class DemoSearchProvider:
-    def search(self, request: ResearchRequest) -> list[Citation]:
-        citations = [
-            Citation(
-                citation_id="demo-company-a-risk",
+    def search(self, request: ResearchRequest) -> list[SearchHit]:
+        return [
+            SearchHit(
                 title="Demo Company A Annual Report",
                 url="https://example.com/company-a-annual-report",
+                snippet="A demo annual report containing financial disclosures.",
+            )
+        ][: request.max_sources]
+
+
+class DemoExtractionProvider:
+    def extract(
+        self,
+        request: ResearchRequest,
+        hits: list[SearchHit],
+    ) -> list[Citation]:
+        if not hits:
+            return []
+
+        hit = hits[0]
+
+        return [
+            Citation(
+                citation_id="demo-company-a-risk",
+                title=hit.title,
+                url=hit.url,
                 published_at=None,
                 retrieved_at=request.as_of,
                 excerpt=DEMO_EVIDENCE_TEXT,
             )
         ]
-        return citations[: request.max_sources]
 
 
 class DemoSynthesisProvider:
@@ -51,6 +71,7 @@ class DemoSynthesisProvider:
 def create_demo_app() -> FastAPI:
     graph = build_research_graph(
         search_provider=DemoSearchProvider(),
+        extraction_provider=DemoExtractionProvider(),
         synthesis_provider=DemoSynthesisProvider(),
     )
     service = LangGraphResearchService(graph=graph)

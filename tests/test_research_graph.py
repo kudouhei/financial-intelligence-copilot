@@ -8,6 +8,7 @@ from ficopilot.contracts import (
     Claim,
     ResearchRequest,
     ResearchResult,
+    SearchHit,
     SynthesisDraft,
 )
 from ficopilot.research.graph import build_research_graph
@@ -18,10 +19,32 @@ class FakeSearchProvider:
         self._citations = citations
         self.requests: list[ResearchRequest] = []
 
-    def search(self, request: ResearchRequest) -> list[Citation]:
+    def search(self, request: ResearchRequest) -> list[SearchHit]:
         self.requests.append(request)
 
-        return self._citations[: request.max_sources]
+        return [
+            SearchHit(
+                title=citation.title,
+                url=citation.url,
+                snippet="Search snippet only; not the extracted evidence.",
+            )
+            for citation in self._citations[: request.max_sources]
+        ]
+
+
+class FakeExtractionProvider:
+    def __init__(self, citations: list[Citation]) -> None:
+        self._citations = citations
+        self.calls: list[tuple[ResearchRequest, list[SearchHit]]] = []
+
+    def extract(
+        self,
+        request: ResearchRequest,
+        hits: list[SearchHit],
+    ) -> list[Citation]:
+        self.calls.append((request, list(hits)))
+
+        return self._citations
 
 
 class FakeSynthesisProvider:
@@ -89,9 +112,11 @@ def test_research_graph_runs_deterministic_vertical_slice() -> None:
     request = make_request()
     citation = make_citation(request)
     search_provider = FakeSearchProvider([citation])
+    extraction_provider = FakeExtractionProvider([citation])
     synthesis_provider = FakeSynthesisProvider()
     graph = build_research_graph(
         search_provider=search_provider,
+        extraction_provider=extraction_provider,
         synthesis_provider=synthesis_provider,
     )
 
@@ -126,6 +151,7 @@ def test_research_graph_returns_controlled_no_evidence_result() -> None:
     synthesis_provider = FakeSynthesisProvider()
     graph = build_research_graph(
         search_provider=search_provider,
+        extraction_provider=FakeExtractionProvider([]),
         synthesis_provider=synthesis_provider,
     )
 
@@ -150,6 +176,7 @@ def test_research_graph_rejects_hallucinated_citation() -> None:
     synthesis_provider = HallucinatingSynthesisProvider()
     graph = build_research_graph(
         search_provider=search_provider,
+        extraction_provider=FakeExtractionProvider([citation]),
         synthesis_provider=synthesis_provider,
     )
 
@@ -161,3 +188,30 @@ def test_research_graph_rejects_hallucinated_citation() -> None:
             {"request": request},
             context={"trace_id": "trace-hallucination-001"},
         )
+
+
+def test_research_graph_skips_synthesis_when_extraction_is_empty() -> None:
+    request = make_request()
+    citation = make_citation(request)
+    extraction_provider = FakeExtractionProvider([])
+    synthesis_provider = FakeSynthesisProvider()
+
+    graph = build_research_graph(
+        search_provider=FakeSearchProvider([citation]),
+        extraction_provider=extraction_provider,
+        synthesis_provider=synthesis_provider,
+    )
+
+    final_state = graph.invoke(
+        {"request": request},
+        context={"trace_id": "trace-empty-extraction"},
+    )
+
+    assert final_state["hits"]
+    assert extraction_provider.calls == [(request, final_state["hits"])]
+    assert final_state["citations"] == []
+    assert final_state["result"].claims == []
+    assert final_state["result"].warnings == [
+        "Search returned candidate sources, but no usable content was extracted."
+    ]
+    assert synthesis_provider.calls == []

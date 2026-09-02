@@ -29,12 +29,11 @@ def test_tavily_provider_maps_search_results() -> None:
 
     with patch("ficopilot.research.tavily_provider.TavilySearch") as search_cls:
         search_cls.return_value.invoke.return_value = payload
-        citations = TavilySearchProvider(api_key="test-key").search(make_request())
+        hits = TavilySearchProvider(api_key="test-key").search(make_request())
 
-    assert len(citations) == 1
-    assert citations[0].title == "Company A Annual Report"
-    assert citations[0].excerpt == "Company A identifies liquidity risk as material."
-    assert citations[0].citation_id.startswith("tavily-")
+    assert len(hits) == 1
+    assert hits[0].title == "Company A Annual Report"
+    assert hits[0].snippet == "Company A identifies liquidity risk as material."
 
 
 def test_tavily_provider_parses_json_string_response() -> None:
@@ -46,10 +45,10 @@ def test_tavily_provider_parses_json_string_response() -> None:
 
     with patch("ficopilot.research.tavily_provider.TavilySearch") as search_cls:
         search_cls.return_value.invoke.return_value = payload
-        citations = TavilySearchProvider(api_key="test-key").search(make_request())
+        hits = TavilySearchProvider(api_key="test-key").search(make_request())
 
-    assert len(citations) == 1
-    assert citations[0].title == "Company A Annual Report"
+    assert len(hits) == 1
+    assert hits[0].title == "Company A Annual Report"
 
 
 def test_tavily_provider_empty_results_are_no_evidence() -> None:
@@ -57,9 +56,9 @@ def test_tavily_provider_empty_results_are_no_evidence() -> None:
         search_cls.return_value.invoke.side_effect = ToolException(
             "No search results found."
         )
-        citations = TavilySearchProvider(api_key="test-key").search(make_request())
+        hits = TavilySearchProvider(api_key="test-key").search(make_request())
 
-    assert citations == []
+    assert hits == []
 
 
 def test_tavily_provider_rejects_api_error_payload() -> None:

@@ -5,8 +5,9 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.runtime import Runtime
 
-from ficopilot.contracts import Citation, ResearchRequest, ResearchResult
+from ficopilot.contracts import Citation, ResearchRequest, ResearchResult, SearchHit
 from ficopilot.research.providers import (
+    ExtractionProvider,
     SearchProvider,
     SynthesisProvider,
 )
@@ -19,6 +20,7 @@ class ResearchContext(TypedDict):
 class ResearchState(TypedDict):
     request: ResearchRequest
     plan: NotRequired[list[str]]
+    hits: NotRequired[list[SearchHit]]
     citations: NotRequired[list[Citation]]
     result: NotRequired[ResearchResult]
 
@@ -38,19 +40,32 @@ def search_node(
     state: ResearchState,
     *,
     search_provider: SearchProvider,
-) -> dict[str, list[Citation]]:
-    citations = search_provider.search(state["request"])
+) -> dict[str, list[SearchHit]]:
+    hits = search_provider.search(state["request"])
 
-    return {"citations": citations}
+    return {"hits": hits}
 
 
 def route_after_search(
     state: ResearchState,
-) -> Literal["synthesize", "no_evidence"]:
-    if state["citations"]:
-        return "synthesize"
+) -> Literal["extract", "no_evidence"]:
+    return "extract" if state["hits"] else "no_evidence"
 
-    return "no_evidence"
+
+def extract_node(
+    state: ResearchState,
+    *,
+    extraction_provider: ExtractionProvider,
+) -> dict[str, list[Citation]]:
+    citations = extraction_provider.extract(state["request"], state["hits"])
+
+    return {"citations": citations}
+
+
+def route_after_extract(
+    state: ResearchState,
+) -> Literal["synthesize", "no_evidence"]:
+    return "synthesize" if state["citations"] else "no_evidence"
 
 
 def synthesize_node(
@@ -89,7 +104,13 @@ def no_evidence_node(
         claims=[],
         citations=[],
         as_of=request.as_of,
-        warnings=["No evidence was returned by the search provider."],
+        warnings=[
+            (
+                "Search returned candidate sources, but no usable content was extracted."
+                if state.get("hits")
+                else "No evidence was returned by the search provider."
+            )
+        ],
         trace_id=runtime.context["trace_id"],
     )
 
@@ -99,6 +120,7 @@ def no_evidence_node(
 def build_research_graph(
     *,
     search_provider: SearchProvider,
+    extraction_provider: ExtractionProvider,
     synthesis_provider: SynthesisProvider,
 ) -> CompiledStateGraph:
     builder = StateGraph(
@@ -107,26 +129,40 @@ def build_research_graph(
     )
 
     builder.add_node("plan", plan_node)
-    builder.add_node("search", partial(search_node, search_provider=search_provider))
+    builder.add_node(
+        "search",
+        partial(search_node, search_provider=search_provider),
+    )
+    builder.add_node(
+        "extract",
+        partial(extract_node, extraction_provider=extraction_provider),
+    )
     builder.add_node(
         "synthesize",
-        partial(
-            synthesize_node,
-            synthesis_provider=synthesis_provider,
-        ),
+        partial(synthesize_node, synthesis_provider=synthesis_provider),
     )
     builder.add_node("no_evidence", no_evidence_node)
 
     builder.add_edge(START, "plan")
     builder.add_edge("plan", "search")
+
     builder.add_conditional_edges(
         "search",
         route_after_search,
+        {
+            "extract": "extract",
+            "no_evidence": "no_evidence",
+        },
+    )
+    builder.add_conditional_edges(
+        "extract",
+        route_after_extract,
         {
             "synthesize": "synthesize",
             "no_evidence": "no_evidence",
         },
     )
+
     builder.add_edge("synthesize", END)
     builder.add_edge("no_evidence", END)
 

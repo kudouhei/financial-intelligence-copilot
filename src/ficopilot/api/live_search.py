@@ -5,6 +5,9 @@ from ficopilot.config import Settings
 from ficopilot.research.extractive_provider import ExtractiveSynthesisProvider
 from ficopilot.research.graph import build_research_graph
 from ficopilot.research.service import LangGraphResearchService
+from ficopilot.research.tavily_extraction_provider import (
+    TavilyExtractionProvider,
+)
 from ficopilot.research.tavily_provider import TavilySearchProvider
 
 
@@ -15,6 +18,9 @@ def create_live_search_app() -> FastAPI:
         search_provider=TavilySearchProvider(
             api_key=settings.require_tavily_api_key(),
             search_depth="basic",
+        ),
+        extraction_provider=TavilyExtractionProvider(
+            api_key=settings.require_tavily_api_key(),
         ),
         synthesis_provider=(ExtractiveSynthesisProvider()),
     )

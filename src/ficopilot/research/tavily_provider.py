@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-from hashlib import sha256
 from json import JSONDecodeError, loads
 from typing import Annotated, Any, Literal
 
@@ -13,7 +11,7 @@ from pydantic import (
     StringConstraints,
 )
 
-from ficopilot.contracts import Citation, ResearchRequest
+from ficopilot.contracts import ResearchRequest, SearchHit
 
 NonBlankText = Annotated[
     str,
@@ -27,6 +25,7 @@ class TavilyResult(BaseModel):
     title: NonBlankText
     url: HttpUrl
     content: NonBlankText
+    score: float | None = Field(default=None, ge=0, le=1)
 
 
 class TavilyResponse(BaseModel):
@@ -71,7 +70,7 @@ class TavilySearchProvider:
     def search(
         self,
         request: ResearchRequest,
-    ) -> list[Citation]:
+    ) -> list[SearchHit]:
         tool = TavilySearch(
             tavily_api_key=self._api_key,
             max_results=request.max_sources,
@@ -99,22 +98,13 @@ class TavilySearchProvider:
             raise RuntimeError(f"Tavily search failed: {error}")
 
         response = TavilyResponse.model_validate(payload)
-        retrieved_at = datetime.now(UTC)
 
         return [
-            Citation(
-                citation_id=self._citation_id(result.url),
+            SearchHit(
                 title=result.title,
                 url=result.url,
-                published_at=None,
-                retrieved_at=retrieved_at,
-                excerpt=result.content,
+                snippet=result.content,
+                score=result.score,
             )
             for result in response.results
         ]
-
-    @staticmethod
-    def _citation_id(url: HttpUrl) -> str:
-        digest = sha256(str(url).encode("utf-8")).hexdigest()[:16]
-
-        return f"tavily-{digest}"

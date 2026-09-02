@@ -11,6 +11,9 @@ from ficopilot.research.graph import (
 from ficopilot.research.service import (
     LangGraphResearchService,
 )
+from ficopilot.research.tavily_extraction_provider import (
+    TavilyExtractionProvider,
+)
 from ficopilot.research.tavily_provider import (
     TavilySearchProvider,
 )
@@ -23,6 +26,9 @@ def create_live_app() -> FastAPI:
         search_provider=TavilySearchProvider(
             api_key=settings.require_tavily_api_key(),
             search_depth="advanced",
+        ),
+        extraction_provider=TavilyExtractionProvider(
+            api_key=settings.require_tavily_api_key(),
         ),
         synthesis_provider=(
             AzureOpenAISynthesisProvider(config=settings.require_azure_openai_config())
