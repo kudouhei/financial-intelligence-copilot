@@ -19,12 +19,12 @@ class ResearchContext(TypedDict):
 
 class ResearchState(TypedDict):
     request: ResearchRequest
-    plan: NotRequired[list[str]]
+    plan: NotRequired[list[str]]    
     hits: NotRequired[list[SearchHit]]
     citations: NotRequired[list[Citation]]
     result: NotRequired[ResearchResult]
 
-
+# Plan: generate a list of tasks to complete, without invoke model
 def plan_node(state: ResearchState) -> dict[str, list[str]]:
     question = state["request"].question
 
@@ -35,7 +35,7 @@ def plan_node(state: ResearchState) -> dict[str, list[str]]:
         ]
     }
 
-
+# Search: retrieve candidate sources from the web, Python Tavily API
 def search_node(
     state: ResearchState,
     *,
@@ -51,7 +51,7 @@ def route_after_search(
 ) -> Literal["extract", "no_evidence"]:
     return "extract" if state["hits"] else "no_evidence"
 
-
+# Extract: extract evidence from the candidate sources
 def extract_node(
     state: ResearchState,
     *,
@@ -67,7 +67,7 @@ def route_after_extract(
 ) -> Literal["synthesize", "no_evidence"]:
     return "synthesize" if state["citations"] else "no_evidence"
 
-
+# Synthesize: combine the evidence into a coherent answer, call the Azure model
 def synthesize_node(
     state: ResearchState,
     runtime: Runtime[ResearchContext],
