@@ -7,6 +7,7 @@ from ficopilot.contracts.research import (
     SynthesisDraft,
 )
 from ficopilot.contracts.scope import ResearchScope
+from ficopilot.contracts.selection import SourceDecision, SourceSelection
 
 __all__ = [
     "Citation",
@@ -15,5 +16,7 @@ __all__ = [
     "ResearchResult",
     "ResearchScope",
     "SearchHit",
+    "SourceDecision",
+    "SourceSelection",
     "SynthesisDraft",
 ]

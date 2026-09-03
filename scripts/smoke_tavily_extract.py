@@ -29,7 +29,14 @@ def main() -> None:
         api_key=settings.require_tavily_api_key(),
     )
 
-    citations = provider.extract(request, [hit])
+    citations = provider.extract(
+        request,
+        [hit],
+        evidence_query=(
+            "QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK. "
+            "Risk exposures and risk management."
+        ),
+    )
 
     print(f"citations={len(citations)}")
 
@@ -37,7 +44,8 @@ def main() -> None:
         print(f"\nid={citation.citation_id}")
         print(f"title={citation.title}")
         print(f"url={citation.url}")
-        print(citation.excerpt[:3_000])
+        print(f"excerpt_chars={len(citation.excerpt)}")
+        print(citation.excerpt)
 
 
 if __name__ == "__main__":

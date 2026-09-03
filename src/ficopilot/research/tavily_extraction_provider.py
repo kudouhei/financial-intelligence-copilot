@@ -42,9 +42,16 @@ class TavilyExtractionProvider:
         self,
         request: ResearchRequest,
         hits: list[SearchHit],
+        *,
+        evidence_query: str | None = None,
     ) -> list[Citation]:
         if not hits:
             return []
+
+        query = request.question if evidence_query is None else evidence_query.strip()
+
+        if not query:
+            raise ValueError("Evidence query must not be blank.")
 
         # Deduplicate URLs while preserving search order.
         hits_by_url: dict[str, SearchHit] = {}
@@ -58,7 +65,7 @@ class TavilyExtractionProvider:
             payload = self._tool.invoke(
                 {
                     "urls": selected_urls,
-                    "query": request.question,
+                    "query": query,
                 }
             )
         except ToolException:

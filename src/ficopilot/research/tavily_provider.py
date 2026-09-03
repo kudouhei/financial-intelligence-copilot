@@ -56,16 +56,15 @@ class TavilySearchProvider:
         self,
         *,
         api_key: str,
-        search_depth: Literal[
-            "basic",
-            "advanced",
-        ] = "basic",
+        search_depth: Literal["basic", "advanced"] = "basic",
+        topic: Literal["general", "news", "finance"] = "finance",
     ) -> None:
         if not api_key.strip():
             raise ValueError("Tavily API key must not be blank.")
 
         self._api_key = api_key
         self._search_depth = search_depth
+        self._topic = topic
 
     def search(
         self,
@@ -74,7 +73,7 @@ class TavilySearchProvider:
         tool = TavilySearch(
             tavily_api_key=self._api_key,
             max_results=request.max_sources,
-            topic="finance",
+            topic=self._topic,
             search_depth=self._search_depth,
             include_answer=False,
             include_raw_content=False,
