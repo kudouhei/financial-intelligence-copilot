@@ -2,6 +2,10 @@
 
 由大模型辅助的研究工作流。
 
+前端 → FastAPI → ResearchService
+                    ↓
+             plan → scope → search → select → extract → synthesize
+
 点击一次 **Run research**，到底发生了什么？以已经运行过的问题为例：
 
 > What market-related financial risks does Microsoft disclose in its 2025 Annual Report?

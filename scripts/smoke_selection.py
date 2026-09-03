@@ -24,6 +24,7 @@ def main() -> None:
         document_types=["annual_report"],
         report_years=[2025],
         latest_requested=False,
+        evidence_query="Market risk disclosures and risk management.",
     )
 
     # Handcrafted screening examples, not fresh search results.

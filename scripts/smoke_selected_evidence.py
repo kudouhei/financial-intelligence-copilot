@@ -86,7 +86,11 @@ def main() -> None:
         return
 
     extraction_provider = TavilyExtractionProvider(api_key=tavily_key)
-    citations = extraction_provider.extract(request, selected_hits)
+    citations = extraction_provider.extract(
+        request,
+        selected_hits,
+        evidence_query=scope.evidence_query,
+    )
 
     selected_urls = {str(hit.url) for hit in selected_hits}
     assert all(str(citation.url) in selected_urls for citation in citations)
@@ -97,7 +101,7 @@ def main() -> None:
     for citation in citations:
         print(f"\n{citation.title}")
         print(citation.url)
-        print(citation.excerpt[:1_200])
+        print(citation.excerpt)
 
 
 if __name__ == "__main__":
