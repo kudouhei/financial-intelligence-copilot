@@ -6,12 +6,14 @@ from ficopilot.contracts.research import (
     SearchHit,
     SynthesisDraft,
 )
+from ficopilot.contracts.scope import ResearchScope
 
 __all__ = [
     "Citation",
     "Claim",
     "ResearchRequest",
     "ResearchResult",
+    "ResearchScope",
     "SearchHit",
     "SynthesisDraft",
 ]
