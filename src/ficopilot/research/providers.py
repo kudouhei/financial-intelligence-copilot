@@ -1,6 +1,13 @@
 from typing import Protocol
 
-from ficopilot.contracts import Citation, ResearchRequest, SearchHit, SynthesisDraft
+from ficopilot.contracts import (
+    Citation,
+    ResearchRequest,
+    ResearchScope,
+    SearchHit,
+    SourceSelection,
+    SynthesisDraft,
+)
 
 
 class SearchProvider(Protocol):
@@ -23,4 +30,22 @@ class ExtractionProvider(Protocol):
         self,
         request: ResearchRequest,
         hits: list[SearchHit],
+        *,
+        evidence_query: str | None = None,
     ) -> list[Citation]: ...
+
+
+class ScopeProvider(Protocol):
+    def identify(
+        self,
+        request: ResearchRequest,
+    ) -> ResearchScope: ...
+
+
+class SelectionProvider(Protocol):
+    def select(
+        self,
+        request: ResearchRequest,
+        scope: ResearchScope,
+        hits: list[SearchHit],
+    ) -> SourceSelection: ...
