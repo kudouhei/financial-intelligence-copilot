@@ -13,6 +13,7 @@ from ficopilot.contracts import (
     SearchHit,
     SourceSelection,
 )
+from ficopilot.contracts.process import ResearchProcess, SourceScreening
 from ficopilot.research.providers import (
     ExtractionProvider,
     ScopeProvider,
@@ -37,6 +38,42 @@ class ResearchState(TypedDict):
     pipeline_warnings: NotRequired[list[str]]
     stop_reason: NotRequired[str]
     result: NotRequired[ResearchResult]
+
+
+def build_process_summary(
+    state: ResearchState,
+    *,
+    stop_reason: str | None = None,
+) -> ResearchProcess:
+    sources: list[SourceScreening] = []
+    selection = state.get("selection")
+
+    if selection is not None:
+        hits = state["hits"]
+
+        for decision in selection.decisions:
+            hit = hits[decision.source_index]
+
+            sources.append(
+                SourceScreening(
+                    source_index=decision.source_index,
+                    action=decision.action,
+                    reason=decision.reason,
+                    title=hit.title,
+                    url=hit.url,
+                )
+            )
+
+    return ResearchProcess(
+        scope=state.get("scope"),
+        candidate_count=(len(state["hits"]) if "hits" in state else None),
+        selected_count=(
+            len(state["selected_hits"]) if "selected_hits" in state else None
+        ),
+        extracted_count=(len(state["citations"]) if "citations" in state else None),
+        sources=sources,
+        stop_reason=stop_reason,
+    )
 
 
 # Plan: generate a list of tasks to complete, without invoke model
@@ -203,6 +240,7 @@ def synthesize_node(
             *draft.warnings,
         ],
         trace_id=runtime.context["trace_id"],
+        process=build_process_summary(state),
     )
 
     return {"result": result}
@@ -232,6 +270,10 @@ def no_evidence_node(
             reason,
         ],
         trace_id=runtime.context["trace_id"],
+        process=build_process_summary(
+            state,
+            stop_reason=reason,
+        ),
     )
 
     return {"result": result}

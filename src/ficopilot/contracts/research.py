@@ -11,6 +11,8 @@ from pydantic import (
     model_validator,
 )
 
+from ficopilot.contracts.process import ResearchProcess
+
 
 class ResearchRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -88,6 +90,7 @@ class ResearchResult(BaseModel):
         str,
         StringConstraints(strip_whitespace=True, min_length=1),
     ]
+    process: ResearchProcess | None = None
 
     @model_validator(mode="after")
     def validate_citation_references(self) -> Self:
