@@ -6,6 +6,18 @@
                     ↓
              plan → scope → search → select → extract → synthesize
 
+
+React
+  → FastAPI
+  → ResearchService
+  → LangGraph
+      → Scope identification
+      → Web search
+      → Source screening
+      → Evidence extraction
+      → Evidence-only synthesis
+  → Answer + Claims + Citations + Process summary
+  
 点击一次 **Run research**，到底发生了什么？以已经运行过的问题为例：
 
 > What market-related financial risks does Microsoft disclose in its 2025 Annual Report?

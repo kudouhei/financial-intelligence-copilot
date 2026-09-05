@@ -55,6 +55,28 @@ echo "Press Ctrl+C to stop."
 uv run uvicorn "$APP" --factory --reload --host "$API_HOST" --port "$API_PORT" &
 API_PID=$!
 
+health_url="http://${API_HOST}:${API_PORT}/health"
+echo "Waiting for API at ${health_url}..."
+api_ready=0
+for _ in $(seq 1 60); do
+  if curl -sf "$health_url" >/dev/null; then
+    api_ready=1
+    break
+  fi
+  if ! kill -0 "$API_PID" 2>/dev/null; then
+    echo "API process exited before becoming ready." >&2
+    exit 1
+  fi
+  sleep 0.5
+done
+
+if [[ "$api_ready" -ne 1 ]]; then
+  echo "API did not become ready within 30s. Is port ${API_PORT} free, and is .env configured for mode '${MODE}'?" >&2
+  exit 1
+fi
+
+echo "API is ready. Starting frontend..."
+
 npm --prefix frontend run dev -- --host "$FRONTEND_HOST" --port "$FRONTEND_PORT" &
 FE_PID=$!
 
