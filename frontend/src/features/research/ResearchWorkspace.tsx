@@ -1,6 +1,8 @@
 import { ResearchForm } from './components/ResearchForm'
 import { ResearchResultPanel } from './components/ResearchResultPanel'
 import { useResearch } from './hooks/useResearch'
+import { ResearchProcessPanel } from './components/ResearchProcessPanel'
+
 import './research.css'
 
 export function ResearchWorkspace() {
@@ -13,7 +15,16 @@ export function ResearchWorkspace() {
         onSubmit={execute}
       />
 
-      <ResearchResultPanel state={state} />
+      <div className="workspace-column">
+        <ResearchResultPanel state={state} />
+
+        {state.status === 'success' &&
+          state.result.process && (
+            <ResearchProcessPanel
+              process={state.result.process}
+            />
+          )}
+      </div>
     </div>
   )
 }
