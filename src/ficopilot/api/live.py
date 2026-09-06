@@ -2,7 +2,9 @@ from fastapi import FastAPI
 
 from ficopilot.api.app import create_app
 from ficopilot.config import Settings
-from ficopilot.research.azure_scope_provider import AzureResearchScopeProvider
+from ficopilot.research.azure_scope_provider import (
+    AzureResearchScopeProvider,
+)
 from ficopilot.research.azure_selection_provider import (
     AzureSourceSelectionProvider,
 )
@@ -23,7 +25,7 @@ from ficopilot.research.tavily_provider import (
 )
 
 
-def create_live_app() -> FastAPI:
+def create_live_service() -> LangGraphResearchService:
     settings = Settings()
     azure_config = settings.require_azure_openai_config()
     tavily_key = settings.require_tavily_api_key()
@@ -48,5 +50,10 @@ def create_live_app() -> FastAPI:
         ),
     )
 
-    service = LangGraphResearchService(graph=graph)
-    return create_app(research_service=service)
+    return LangGraphResearchService(graph=graph)
+
+
+def create_live_app() -> FastAPI:
+    return create_app(
+        research_service=create_live_service(),
+    )

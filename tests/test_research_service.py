@@ -10,6 +10,7 @@ class FakeGraph:
         self.calls: list[
             tuple[
                 dict[str, ResearchRequest],
+                dict[str, object],
                 dict[str, str],
             ]
         ] = []
@@ -18,9 +19,10 @@ class FakeGraph:
         self,
         input_state: dict[str, ResearchRequest],
         *,
+        config: dict[str, object],
         context: dict[str, str],
     ) -> dict[str, ResearchResult]:
-        self.calls.append((input_state, context))
+        self.calls.append((input_state, config, context))
 
         return {"result": self._result}
 
@@ -51,6 +53,15 @@ def test_langgraph_research_service_invokes_graph() -> None:
     assert graph.calls == [
         (
             {"request": request},
+            {
+                "run_name": "financial_research",
+                "tags": ["ficopilot", "research", "development"],
+                "metadata": {
+                    "application_trace_id": "trace-service-001",
+                    "workflow": "financial_research",
+                    "environment": "development",
+                },
+            },
             {"trace_id": "trace-service-001"},
         )
     ]
