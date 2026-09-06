@@ -1,3 +1,8 @@
+from ficopilot.contracts.document import (
+    DocumentChunk,
+    DocumentIngestionResult,
+    DocumentRecord,
+)
 from ficopilot.contracts.research import (
     Citation,
     Claim,
@@ -12,6 +17,9 @@ from ficopilot.contracts.selection import SourceDecision, SourceSelection
 __all__ = [
     "Citation",
     "Claim",
+    "DocumentChunk",
+    "DocumentIngestionResult",
+    "DocumentRecord",
     "ResearchRequest",
     "ResearchResult",
     "ResearchScope",

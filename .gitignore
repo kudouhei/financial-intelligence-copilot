@@ -19,3 +19,6 @@ htmlcov/
 
 # macOS
 .DS_Store
+
+# Locally ingested documents
+data/documents/*.pdf
