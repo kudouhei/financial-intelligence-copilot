@@ -15,7 +15,12 @@ from ficopilot.contracts import (
     DocumentRecord,
 )
 
-
+# 读取 PDF
+# → 计算 SHA-256
+# → 提取每一页文本
+# → 保存页码 metadata
+# → 切成 chunks
+# → 生成 DocumentIngestionResult
 class PdfIngestionService:
     def __init__(
         self,

@@ -5,6 +5,22 @@ from ficopilot.document_rag.ingestion import (
     PdfIngestionService,
 )
 
+# 终端命令
+#    ↓
+# 解析 pdf_path 和 --find
+#    ↓
+# 调用 PdfIngestionService
+#    ↓
+# 得到 DocumentIngestionResult
+#    ├── document：文档信息
+#    ├── chunks：文本块
+#    └── warnings：非致命问题
+#    ↓
+# 有 --find？── Yes → 查找并展示匹配 chunk
+#    │
+#    No
+#    ↓
+# 展示前三个 chunk
 
 def main() -> None:
     parser = ArgumentParser()
