@@ -39,26 +39,36 @@ def main() -> None:
         max_retries=3,
     )
 
-    ingestion = PdfIngestionService().ingest(args.pdf_path)
-
+    ingestion_service = PdfIngestionService()
     index = InMemoryDocumentIndex(embeddings=embeddings)
-
-    print(
-        f"indexing={len(ingestion.chunks)} chunks",
-        flush=True,
-    )
-    indexed = index.add_chunks(ingestion.chunks)
-    print(f"indexed={indexed}")
+    answer_provider = AzureDocumentAnswerProvider(config=chat_config)
 
     service = DocumentRagService(
+        ingestion_service=ingestion_service,
         index=index,
-        answer_provider=AzureDocumentAnswerProvider(config=chat_config),
+        answer_provider=answer_provider,
     )
+
+    print(
+        f"uploading={args.pdf_path.name}",
+        flush=True,
+    )
+
+    upload_result = service.ingest_pdf(
+        filename=args.pdf_path.name,
+        file_bytes=args.pdf_path.read_bytes(),
+    )
+
+    print(f"document_id={upload_result.document.document_id}")
+    print(f"indexed={upload_result.chunk_count}")
+
+    for warning in upload_result.warnings:
+        print(f"warning={warning}")
 
     for question in args.questions:
         result = service.ask(
             DocumentQuestion(
-                document_id=ingestion.document.document_id,
+                document_id=(upload_result.document.document_id),
                 question=question,
                 top_k=5,
             )
@@ -72,7 +82,8 @@ def main() -> None:
         for citation in result.citations:
             print(
                 f"- page={citation.page_number} "
-                f"score={citation.similarity_score:.4f} "
+                f"score="
+                f"{citation.similarity_score:.4f} "
                 f"chunk_id={citation.chunk_id}"
             )
 

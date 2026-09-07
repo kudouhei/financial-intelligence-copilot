@@ -45,6 +45,14 @@ class RetrievedChunk(DocumentChunk):
     similarity_score: float
 
 
+class DocumentUploadResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    document: DocumentRecord
+    chunk_count: int = Field(ge=0)
+    warnings: list[str] = Field(default_factory=list)
+
+
 # 一次摄取操作的完整结果
 class DocumentIngestionResult(BaseModel):
     model_config = ConfigDict(extra="forbid")

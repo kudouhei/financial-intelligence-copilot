@@ -3,13 +3,16 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Header, HTTPException, status
 
+from ficopilot.api.document_routes import create_document_router
 from ficopilot.contracts import ResearchRequest, ResearchResult
+from ficopilot.document_rag.service import DocumentRagService
 from ficopilot.research.service import ResearchService
 
 
 def create_app(
     *,
     research_service: ResearchService | None = None,
+    document_service: DocumentRagService | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Financial Intelligence Copilot API",
@@ -41,5 +44,11 @@ def create_app(
             request,
             trace_id=trace_id,
         )
+
+    app.include_router(
+        create_document_router(
+            document_service=document_service,
+        )
+    )
 
     return app

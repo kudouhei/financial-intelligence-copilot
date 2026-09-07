@@ -5,11 +5,20 @@ from ficopilot.contracts import (
     DocumentAnswerDraft,
     DocumentCitation,
     DocumentQuestion,
+    DocumentRecord,
+    DocumentUploadResult,
     RetrievedChunk,
+)
+from ficopilot.document_rag.ingestion import (
+    PdfIngestionService,
 )
 from ficopilot.document_rag.vector_index import (
     InMemoryDocumentIndex,
 )
+
+
+class DocumentNotFoundError(Exception):
+    pass
 
 
 class DocumentAnswerProvider(Protocol):
@@ -24,16 +33,47 @@ class DocumentRagService:
     def __init__(
         self,
         *,
+        ingestion_service: PdfIngestionService,
         index: InMemoryDocumentIndex,
         answer_provider: DocumentAnswerProvider,
     ) -> None:
+        self._ingestion_service = ingestion_service
         self._index = index
         self._answer_provider = answer_provider
+        self._documents: dict[str, DocumentRecord] = {}
+
+    def ingest_pdf(
+        self,
+        *,
+        filename: str,
+        file_bytes: bytes,
+    ) -> DocumentUploadResult:
+        result = self._ingestion_service.ingest_bytes(
+            filename=filename,
+            file_bytes=file_bytes,
+        )
+        indexed_count = 0
+        if result.chunks:
+            indexed_count = self._index.add_chunks(result.chunks)
+
+        if indexed_count != len(result.chunks):
+            raise RuntimeError("Not all document chunks were indexed.")
+
+        self._documents[result.document.document_id] = result.document
+
+        return DocumentUploadResult(
+            document=result.document,
+            chunk_count=indexed_count,
+            warnings=result.warnings,
+        )
 
     def ask(
         self,
         request: DocumentQuestion,
     ) -> DocumentAnswer:
+        if request.document_id not in self._documents:
+            raise DocumentNotFoundError(f"Document not found: {request.document_id}")
+
         retrieved_chunks = self._index.search(
             request.question,
             k=request.top_k,

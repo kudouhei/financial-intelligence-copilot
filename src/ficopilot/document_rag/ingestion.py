@@ -51,10 +51,25 @@ class PdfIngestionService:
         if not path.is_file():
             raise FileNotFoundError(path)
 
-        if path.suffix.lower() != ".pdf":
+        return self.ingest_bytes(
+            filename=path.name,
+            file_bytes=path.read_bytes(),
+        )
+
+    def ingest_bytes(
+        self,
+        *,
+        filename: str,
+        file_bytes: bytes,
+    ) -> DocumentIngestionResult:
+        safe_filename = Path(filename).name
+
+        if Path(safe_filename).suffix.lower() != ".pdf":
             raise ValueError("Only PDF documents are supported.")
 
-        file_bytes = path.read_bytes()
+        if not file_bytes:
+            raise ValueError("The uploaded PDF is empty.")
+
         file_hash = sha256(file_bytes).hexdigest()
         document_id = f"doc-{file_hash[:16]}"
 
@@ -121,7 +136,7 @@ class PdfIngestionService:
 
         document = DocumentRecord(
             document_id=document_id,
-            filename=path.name,
+            filename=safe_filename,
             media_type="application/pdf",
             sha256=file_hash,
             page_count=len(reader.pages),

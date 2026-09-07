@@ -6,6 +6,7 @@ from ficopilot.contracts.document import (
     DocumentIngestionResult,
     DocumentQuestion,
     DocumentRecord,
+    DocumentUploadResult,
     RetrievedChunk,
 )
 from ficopilot.contracts.research import (
@@ -29,6 +30,7 @@ __all__ = [
     "DocumentIngestionResult",
     "DocumentQuestion",
     "DocumentRecord",
+    "DocumentUploadResult",
     "ResearchRequest",
     "ResearchResult",
     "ResearchScope",
