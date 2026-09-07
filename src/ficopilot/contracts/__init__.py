@@ -2,6 +2,7 @@ from ficopilot.contracts.document import (
     DocumentChunk,
     DocumentIngestionResult,
     DocumentRecord,
+    RetrievedChunk,
 )
 from ficopilot.contracts.research import (
     Citation,
@@ -23,6 +24,7 @@ __all__ = [
     "ResearchRequest",
     "ResearchResult",
     "ResearchScope",
+    "RetrievedChunk",
     "SearchHit",
     "SourceDecision",
     "SourceSelection",

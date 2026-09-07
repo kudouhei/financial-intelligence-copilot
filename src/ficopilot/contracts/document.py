@@ -41,6 +41,10 @@ class DocumentChunk(BaseModel):
     content: NonBlankText
 
 
+class RetrievedChunk(DocumentChunk):
+    similarity_score: float
+
+
 # 一次摄取操作的完整结果
 class DocumentIngestionResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
