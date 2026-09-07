@@ -68,3 +68,51 @@ class DocumentIngestionResult(BaseModel):
                 raise ValueError("Chunk page number exceeds document page count.")
 
         return self
+
+
+class DocumentQuestion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    document_id: NonBlankText
+    question: NonBlankText
+    top_k: int = Field(default=5, ge=1, le=12)
+
+
+class DocumentAnswerDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: NonBlankText
+    cited_chunk_ids: list[NonBlankText]
+    insufficient_evidence: bool
+    warnings: list[NonBlankText]
+
+    @model_validator(mode="after")
+    def validate_citations(self) -> Self:
+        if len(self.cited_chunk_ids) != len(set(self.cited_chunk_ids)):
+            raise ValueError("Cited chunk IDs must be unique.")
+
+        if not self.insufficient_evidence and not self.cited_chunk_ids:
+            raise ValueError("A supported answer must cite evidence.")
+
+        return self
+
+
+class DocumentCitation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    chunk_id: NonBlankText
+    document_id: NonBlankText
+    page_number: int = Field(ge=1)
+    excerpt: NonBlankText
+    similarity_score: float
+
+
+class DocumentAnswer(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    document_id: NonBlankText
+    question: NonBlankText
+    answer: NonBlankText
+    citations: list[DocumentCitation]
+    insufficient_evidence: bool
+    warnings: list[NonBlankText]

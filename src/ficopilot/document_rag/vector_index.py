@@ -40,6 +40,7 @@ class InMemoryDocumentIndex:
         query: str,
         *,
         k: int = 5,
+        document_id: str | None = None,
     ) -> list[RetrievedChunk]:
         clean_query = query.strip()
 
@@ -49,9 +50,21 @@ class InMemoryDocumentIndex:
         if k <= 0:
             raise ValueError("k must be positive.")
 
+        if document_id is not None and not document_id.strip():
+            raise ValueError("document_id must not be blank.")
+
+        target_document_id = document_id.strip() if document_id is not None else None
+
+        def belongs_to_document(document: Document) -> bool:
+            return (
+                target_document_id is None
+                or document.metadata.get("document_id") == target_document_id
+            )
+
         results = self._vector_store.similarity_search_with_score(
             clean_query,
             k=k,
+            filter=belongs_to_document,
         )
 
         return [
