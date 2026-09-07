@@ -15,6 +15,17 @@ class AzureOpenAIConfig:
         return f"{self.endpoint.rstrip('/')}/openai/v1/"
 
 
+@dataclass(frozen=True, slots=True)
+class AzureOpenAIEmbeddingConfig:
+    endpoint: str
+    api_key: str
+    deployment: str
+
+    @property
+    def base_url(self) -> str:
+        return f"{self.endpoint.rstrip('/')}/openai/v1/"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -25,6 +36,7 @@ class Settings(BaseSettings):
     azure_openai_endpoint: str | None = None
     azure_openai_api_key: SecretStr | None = None
     azure_openai_deployment: str | None = None
+    azure_openai_embedding_deployment: str | None = None
 
     def require_tavily_api_key(self) -> str:
         if self.tavily_api_key is None:
@@ -56,6 +68,31 @@ class Settings(BaseSettings):
             )
 
         return AzureOpenAIConfig(
+            endpoint=endpoint,
+            api_key=api_key,
+            deployment=deployment,
+        )
+
+    def require_azure_openai_embedding_config(
+        self,
+    ) -> AzureOpenAIEmbeddingConfig:
+        endpoint = (self.azure_openai_endpoint or "").strip()
+        deployment = (self.azure_openai_embedding_deployment or "").strip()
+
+        api_key = (
+            self.azure_openai_api_key.get_secret_value()
+            if self.azure_openai_api_key
+            else ""
+        ).strip()
+
+        if not endpoint or not api_key or not deployment:
+            raise RuntimeError(
+                "AZURE_OPENAI_ENDPOINT, "
+                "AZURE_OPENAI_API_KEY, and "
+                "AZURE_OPENAI_EMBEDDING_DEPLOYMENT are required."
+            )
+
+        return AzureOpenAIEmbeddingConfig(
             endpoint=endpoint,
             api_key=api_key,
             deployment=deployment,
