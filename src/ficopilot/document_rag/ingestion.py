@@ -15,6 +15,7 @@ from ficopilot.contracts import (
     DocumentRecord,
 )
 
+
 # 读取 PDF
 # → 计算 SHA-256
 # → 提取每一页文本
