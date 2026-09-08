@@ -158,6 +158,152 @@
     line-height: 1.6;
   }
   
+  .document-column {
+    display: grid;
+    min-width: 0;
+    gap: 20px;
+  }
+  
+  .document-question-form {
+    display: grid;
+    gap: 10px;
+  }
+  
+  .document-question-form label {
+    color: #34495e;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .document-question-form textarea,
+  .document-question-form input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    color: #172033;
+    background: #f8fafc;
+    font: inherit;
+  }
+  
+  .document-question-form textarea {
+    padding: 12px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+  
+  .document-question-form input {
+    min-height: 42px;
+    padding: 0 12px;
+  }
+  
+  .document-question-form button {
+    min-height: 46px;
+    margin-top: 6px;
+    border: 0;
+    border-radius: 9px;
+    color: white;
+    background: #173f5f;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  
+  .document-question-form :disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  
+  .document-guidance {
+    margin: 0;
+    color: #718096;
+    font-size: 13px;
+  }
+  
+  .document-answer {
+    display: grid;
+    gap: 22px;
+  }
+  
+  .answer-status {
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 750;
+  }
+  
+  .answer-status--supported {
+    color: #20603d;
+    background: #e7f6ed;
+  }
+  
+  .answer-status--insufficient {
+    color: #725300;
+    background: #fff7d6;
+  }
+  
+  .document-answer-text {
+    margin: 0;
+    color: #243b53;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  
+  .document-answer h3 {
+    margin: 0 0 10px;
+    color: #34495e;
+    font-size: 14px;
+  }
+  
+  .document-citations {
+    display: grid;
+    gap: 10px;
+  }
+  
+  .document-citation {
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #f8fafc;
+  }
+  
+  .document-citation header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #34495e;
+    font-size: 13px;
+  }
+  
+  .document-citation header span,
+  .document-citation small {
+    color: #718096;
+  }
+  
+  .document-citation summary {
+    margin: 12px 0 8px;
+    color: #17658a;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  
+  .document-citation p {
+    color: #52677d;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  
+  .document-citation small {
+    overflow-wrap: anywhere;
+  }
+  
+  .document-answer-state {
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    color: #718096;
+  }
+  
   @media (max-width: 850px) {
     .document-workspace {
       grid-template-columns: 1fr;
