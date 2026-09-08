@@ -23,6 +23,7 @@ class DocumentIdentity:
     sha256: str
     document_id: str
 
+
 # 读取 PDF
 # → 计算 SHA-256
 # → 提取每一页文本

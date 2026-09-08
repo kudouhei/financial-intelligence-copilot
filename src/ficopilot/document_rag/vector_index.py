@@ -1,10 +1,26 @@
 from collections.abc import Sequence
+from typing import Protocol
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 
 from ficopilot.contracts import DocumentChunk, RetrievedChunk
+
+
+class DocumentIndex(Protocol):
+    def add_chunks(
+        self,
+        chunks: Sequence[DocumentChunk],
+    ) -> int: ...
+
+    def search(
+        self,
+        query: str,
+        *,
+        k: int = 5,
+        document_id: str | None = None,
+    ) -> list[RetrievedChunk]: ...
 
 
 class InMemoryDocumentIndex:

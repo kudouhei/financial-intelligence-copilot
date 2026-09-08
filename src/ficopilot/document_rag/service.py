@@ -10,7 +10,7 @@ from ficopilot.contracts import (
     RetrievedChunk,
 )
 from ficopilot.document_rag.ingestion import PdfIngestionService
-from ficopilot.document_rag.vector_index import InMemoryDocumentIndex
+from ficopilot.document_rag.vector_index import DocumentIndex
 
 
 class DocumentNotFoundError(Exception):
@@ -30,7 +30,7 @@ class DocumentRagService:
         self,
         *,
         ingestion_service: PdfIngestionService,
-        index: InMemoryDocumentIndex,
+        index: DocumentIndex,
         answer_provider: DocumentAnswerProvider,
     ) -> None:
         self._ingestion_service = ingestion_service
