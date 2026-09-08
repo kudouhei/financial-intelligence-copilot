@@ -2,58 +2,98 @@ import { useState } from 'react'
 
 import { DocumentRagWorkspace } from './features/document_rag/DocumentRagWorkspace'
 import { ResearchWorkspace } from './features/research/ResearchWorkspace'
+
 import './App.css'
 
+const workspaceCopy = {
+  research: {
+    eyebrow: 'Research agent',
+    title: 'Evidence-first financial research',
+    description:
+      'Research financial questions with traceable claims, screened sources, and citations.',
+  },
+  documents: {
+    eyebrow: 'Document intelligence',
+    title: 'Ask questions across financial documents',
+    description:
+      'Upload a PDF, retrieve relevant evidence, and generate page-level cited answers.',
+  },
+} as const
+
+type WorkspaceMode = keyof typeof workspaceCopy
+
 function App() {
-  const [mode, setMode] = useState<'documents' | 'research'>('research')
+  const [mode, setMode] =
+    useState<WorkspaceMode>('research')
+
+  const activeWorkspace = workspaceCopy[mode]
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
+        <div className="product-brand">
           <span className="product-mark">FI</span>
-          <span>Financial Intelligence Copilot</span>
+
+          <span className="product-name">
+            Financial Intelligence Copilot
+          </span>
         </div>
 
-        <span className="status-badge">Demo mode</span>
-      </header>
-
-      <main>
         <nav
           className="workspace-switcher"
           aria-label="Copilot workspace"
+          role="tablist"
         >
           <button
+            id="workspace-tab-research"
             type="button"
-            aria-pressed={mode === 'research'}
+            role="tab"
+            aria-selected={mode === 'research'}
+            aria-controls="workspace-panel"
             onClick={() => setMode('research')}
           >
-            Research Agent
+            Research
           </button>
 
           <button
+            id="workspace-tab-documents"
             type="button"
-            aria-pressed={mode === 'documents'}
+            role="tab"
+            aria-selected={mode === 'documents'}
+            aria-controls="workspace-panel"
             onClick={() => setMode('documents')}
           >
-            Document RAG
+            Documents
           </button>
         </nav>
-        <section className="app-hero">
-          <p className="eyebrow">Research Agent</p>
-          <h1>Evidence-first financial research</h1>
-          <p>
-            Turn a financial question into traceable
-            claims, citations, and a reproducible
-            research result.
+
+        <span className="status-badge">
+          Development
+        </span>
+      </header>
+
+      <main>
+        <section className="workspace-intro">
+          <p className="eyebrow">
+            {activeWorkspace.eyebrow}
           </p>
+
+          <h1>{activeWorkspace.title}</h1>
+
+          <p>{activeWorkspace.description}</p>
         </section>
 
-        {mode === 'research' ? (
-          <ResearchWorkspace />
-        ) : (
-          <DocumentRagWorkspace />
-        )}
+        <div
+          id="workspace-panel"
+          role="tabpanel"
+          aria-labelledby={`workspace-tab-${mode}`}
+        >
+          {mode === 'research' ? (
+            <ResearchWorkspace />
+          ) : (
+            <DocumentRagWorkspace />
+          )}
+        </div>
       </main>
     </div>
   )
