@@ -9,16 +9,12 @@ from ficopilot.contracts import (
     DocumentUploadResult,
     RetrievedChunk,
 )
-from ficopilot.document_rag.ingestion import (
-    PdfIngestionService,
-)
-from ficopilot.document_rag.vector_index import (
-    InMemoryDocumentIndex,
-)
+from ficopilot.document_rag.ingestion import PdfIngestionService
+from ficopilot.document_rag.vector_index import InMemoryDocumentIndex
 
 
 class DocumentNotFoundError(Exception):
-    pass
+    """Raised when a requested document has not been ingested."""
 
 
 class DocumentAnswerProvider(Protocol):
@@ -40,7 +36,13 @@ class DocumentRagService:
         self._ingestion_service = ingestion_service
         self._index = index
         self._answer_provider = answer_provider
+
+        # Registered documents available for question answering.
         self._documents: dict[str, DocumentRecord] = {}
+
+        # In-process ingestion cache:
+        # sha256 -> previous upload result
+        self._uploads_by_sha256: dict[str, DocumentUploadResult] = {}
 
     def ingest_pdf(
         self,
@@ -48,24 +50,55 @@ class DocumentRagService:
         filename: str,
         file_bytes: bytes,
     ) -> DocumentUploadResult:
-        result = self._ingestion_service.ingest_bytes(
+        # This performs lightweight validation and calculates SHA-256.
+        # It does not parse, chunk, or embed the PDF.
+        identity = self._ingestion_service.identify(
             filename=filename,
             file_bytes=file_bytes,
         )
-        indexed_count = 0
-        if result.chunks:
-            indexed_count = self._index.add_chunks(result.chunks)
 
-        if indexed_count != len(result.chunks):
+        cached_result = self._uploads_by_sha256.get(identity.sha256)
+
+        # The same PDF has already been extracted, chunked and indexed
+        # during the lifetime of this service instance.
+        if cached_result is not None:
+            return cached_result.model_copy(
+                update={"cache_hit": True},
+            )
+
+        # Cache miss: run the expensive ingestion pipeline.
+        ingestion_result = self._ingestion_service.ingest_bytes(
+            filename=filename,
+            file_bytes=file_bytes,
+        )
+
+        indexed_count = 0
+
+        if ingestion_result.chunks:
+            indexed_count = self._index.add_chunks(
+                ingestion_result.chunks,
+            )
+
+        if indexed_count != len(ingestion_result.chunks):
             raise RuntimeError("Not all document chunks were indexed.")
 
-        self._documents[result.document.document_id] = result.document
+        document = ingestion_result.document
 
-        return DocumentUploadResult(
-            document=result.document,
-            chunk_count=indexed_count,
-            warnings=result.warnings,
+        # Register the document so it can be used by ask().
+        self._documents[document.document_id] = document
+
+        upload_result = DocumentUploadResult(
+            document=document,
+            chunk_count=len(ingestion_result.chunks),
+            warnings=ingestion_result.warnings,
+            cache_hit=False,
         )
+
+        # Only cache after extraction and indexing succeed.
+        # This prevents a partially indexed document from being cached.
+        self._uploads_by_sha256[document.sha256] = upload_result
+
+        return upload_result
 
     def ask(
         self,
@@ -84,7 +117,7 @@ class DocumentRagService:
             return DocumentAnswer(
                 document_id=request.document_id,
                 question=request.question,
-                answer=("Insufficient document evidence to answer the question."),
+                answer="Insufficient document evidence to answer the question.",
                 citations=[],
                 insufficient_evidence=True,
                 warnings=["No chunks were retrieved for the document."],
@@ -95,9 +128,12 @@ class DocumentRagService:
             retrieved_chunks,
         )
 
+        # An insufficient-evidence answer must not expose citations,
+        # even if the model unexpectedly returned chunk IDs.
         effective_cited_chunk_ids = (
             [] if draft.insufficient_evidence else draft.cited_chunk_ids
         )
+
         chunks_by_id = {chunk.chunk_id: chunk for chunk in retrieved_chunks}
 
         unknown_ids = set(effective_cited_chunk_ids) - set(chunks_by_id)
@@ -129,6 +165,6 @@ class DocumentRagService:
             question=request.question,
             answer=draft.answer,
             citations=citations,
-            insufficient_evidence=(draft.insufficient_evidence),
+            insufficient_evidence=draft.insufficient_evidence,
             warnings=warnings,
         )

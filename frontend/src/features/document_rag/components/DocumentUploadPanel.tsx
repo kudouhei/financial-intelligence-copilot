@@ -67,7 +67,15 @@ export function DocumentUploadPanel({
 
       {state.status === 'success' && (
         <div className="document-summary">
-          <strong>{state.data.document.filename}</strong>
+          <div className="document-summary-heading">
+            <strong>{state.data.document.filename}</strong>
+      
+            <span className="document-cache-status">
+              {state.data.cache_hit
+                ? 'Previously indexed'
+                : 'Upload complete'}
+            </span>
+          </div>
 
           <dl>
             <div>

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
 from io import BytesIO
@@ -15,6 +16,12 @@ from ficopilot.contracts import (
     DocumentRecord,
 )
 
+
+@dataclass(frozen=True, slots=True)
+class DocumentIdentity:
+    filename: str
+    sha256: str
+    document_id: str
 
 # 读取 PDF
 # → 计算 SHA-256
@@ -62,16 +69,15 @@ class PdfIngestionService:
         filename: str,
         file_bytes: bytes,
     ) -> DocumentIngestionResult:
-        safe_filename = Path(filename).name
 
-        if Path(safe_filename).suffix.lower() != ".pdf":
-            raise ValueError("Only PDF documents are supported.")
+        identity = self.identify(
+            filename=filename,
+            file_bytes=file_bytes,
+        )
 
-        if not file_bytes:
-            raise ValueError("The uploaded PDF is empty.")
-
-        file_hash = sha256(file_bytes).hexdigest()
-        document_id = f"doc-{file_hash[:16]}"
+        safe_filename = identity.filename
+        file_hash = identity.sha256
+        document_id = identity.document_id
 
         reader = PdfReader(BytesIO(file_bytes))
 
@@ -147,4 +153,26 @@ class PdfIngestionService:
             document=document,
             chunks=chunks,
             warnings=warnings,
+        )
+
+    @staticmethod
+    def identify(
+        *,
+        filename: str,
+        file_bytes: bytes,
+    ) -> DocumentIdentity:
+        safe_filename = Path(filename).name
+
+        if Path(safe_filename).suffix.lower() != ".pdf":
+            raise ValueError("Only PDF documents are supported.")
+
+        if not file_bytes:
+            raise ValueError("The uploaded PDF is empty.")
+
+        file_hash = sha256(file_bytes).hexdigest()
+
+        return DocumentIdentity(
+            filename=safe_filename,
+            sha256=file_hash,
+            document_id=f"doc-{file_hash[:16]}",
         )

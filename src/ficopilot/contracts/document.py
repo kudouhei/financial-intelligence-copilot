@@ -51,6 +51,7 @@ class DocumentUploadResult(BaseModel):
     document: DocumentRecord
     chunk_count: int = Field(ge=0)
     warnings: list[str] = Field(default_factory=list)
+    cache_hit: bool = False
 
 
 # 一次摄取操作的完整结果

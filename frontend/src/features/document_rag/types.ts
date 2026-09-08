@@ -11,8 +11,9 @@ export type DocumentRecord = {
     document: DocumentRecord
     chunk_count: number
     warnings: string[]
+    cache_hit: boolean
   }
-  
+
   export type DocumentQuestion = {
     document_id: string
     question: string
