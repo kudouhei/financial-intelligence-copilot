@@ -80,3 +80,25 @@
     padding-top: 42px;
   }
 }
+
+.workspace-switcher {
+  display: flex;
+  gap: 8px;
+  padding-top: 28px;
+}
+
+.workspace-switcher button {
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #52677d;
+  background: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.workspace-switcher button[aria-pressed='true'] {
+  border-color: #173f5f;
+  color: white;
+  background: #173f5f;
+}
