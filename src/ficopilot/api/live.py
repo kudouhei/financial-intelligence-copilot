@@ -12,8 +12,8 @@ from ficopilot.document_rag.ingestion import (
 from ficopilot.document_rag.service import (
     DocumentRagService,
 )
-from ficopilot.document_rag.vector_index import (
-    InMemoryDocumentIndex,
+from ficopilot.document_rag.azure_search_index import (
+    AzureAiSearchDocumentIndex,
 )
 from ficopilot.research.azure_scope_provider import (
     AzureResearchScopeProvider,
@@ -70,6 +70,7 @@ def create_live_document_service() -> DocumentRagService:
     settings = Settings()
     chat_config = settings.require_azure_openai_config()
     embedding_config = settings.require_azure_openai_embedding_config()
+    search_config = settings.require_azure_ai_search_config()
 
     embeddings = OpenAIEmbeddings(
         model=embedding_config.deployment,
@@ -82,8 +83,15 @@ def create_live_document_service() -> DocumentRagService:
 
     return DocumentRagService(
         ingestion_service=PdfIngestionService(),
-        index=InMemoryDocumentIndex(embeddings=embeddings),
-        answer_provider=AzureDocumentAnswerProvider(config=chat_config),
+        index=AzureAiSearchDocumentIndex(
+            endpoint=search_config.endpoint,
+            api_key=search_config.api_key,
+            index_name=search_config.index_name,
+            embeddings=embeddings,
+        ),
+        answer_provider=AzureDocumentAnswerProvider(
+            config=chat_config,
+        ),
     )
 
 
