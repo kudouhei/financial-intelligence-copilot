@@ -25,11 +25,18 @@ class AzureOpenAIEmbeddingConfig:
     def base_url(self) -> str:
         return f"{self.endpoint.rstrip('/')}/openai/v1/"
 
+
 @dataclass(frozen=True, slots=True)
 class AzureAiSearchConfig:
     endpoint: str
     api_key: str
     index_name: str
+
+
+@dataclass(frozen=True, slots=True)
+class DatabaseConfig:
+    url: str
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -45,9 +52,9 @@ class Settings(BaseSettings):
 
     azure_ai_search_endpoint: str | None = None
     azure_ai_search_api_key: SecretStr | None = None
-    azure_ai_search_index_name: str = (
-        "financial-document-chunks-v1"
-    )
+    azure_ai_search_index_name: str = "financial-document-chunks-v1"
+
+    database_url: SecretStr | None = None
 
     def require_tavily_api_key(self) -> str:
         if self.tavily_api_key is None:
@@ -112,9 +119,7 @@ class Settings(BaseSettings):
     def require_azure_ai_search_config(
         self,
     ) -> AzureAiSearchConfig:
-        endpoint = (
-            self.azure_ai_search_endpoint or ""
-        ).strip()
+        endpoint = (self.azure_ai_search_endpoint or "").strip()
 
         api_key = (
             self.azure_ai_search_api_key.get_secret_value()
@@ -136,3 +141,13 @@ class Settings(BaseSettings):
             api_key=api_key,
             index_name=index_name,
         )
+
+    def require_database_config(self) -> DatabaseConfig:
+        url = (
+            self.database_url.get_secret_value() if self.database_url else ""
+        ).strip()
+
+        if not url:
+            raise RuntimeError("DATABASE_URL is required.")
+
+        return DatabaseConfig(url=url)
