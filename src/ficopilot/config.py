@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     azure_ai_search_index_name: str = "financial-document-chunks-v1"
 
     database_url: SecretStr | None = None
+    data_agent_database_url: SecretStr | None = None
 
     def require_tavily_api_key(self) -> str:
         if self.tavily_api_key is None:
@@ -149,5 +150,21 @@ class Settings(BaseSettings):
 
         if not url:
             raise RuntimeError("DATABASE_URL is required.")
+
+        return DatabaseConfig(url=url)
+
+    def require_data_agent_database_config(
+        self,
+    ) -> DatabaseConfig:
+        url = (
+            self.data_agent_database_url.get_secret_value()
+            if self.data_agent_database_url
+            else ""
+        ).strip()
+
+        if not url:
+            raise RuntimeError(
+                "DATA_AGENT_DATABASE_URL is required."
+            )
 
         return DatabaseConfig(url=url)
