@@ -13,7 +13,7 @@ export function DocumentCitationCard({
         <strong>PDF page {citation.page_number}</strong>
 
         <span>
-          Similarity{' '}
+          Relevance{' '}
           {citation.similarity_score.toFixed(3)}
         </span>
       </header>

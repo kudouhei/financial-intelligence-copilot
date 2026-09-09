@@ -18,7 +18,7 @@ export function DocumentQuestionPanel({
   const [question, setQuestion] = useState(
     'How does the EIB manage liquidity and funding risk?',
   )
-  const [topK, setTopK] = useState(5)
+  const [topK, setTopK] = useState(10)
 
   function handleSubmit(
     event: SubmitEvent<HTMLFormElement>,

@@ -221,14 +221,17 @@ class AzureAiSearchDocumentIndex:
 
         query_vector = self._embeddings.embed_query(clean_query)
 
+        candidate_k = max(50, k)
+
         vector_query = VectorizedQuery(
             vector=query_vector,
-            k_nearest_neighbors=k,
+            k_nearest_neighbors=candidate_k,
             fields="content_vector",
         )
 
         results = self._search_client.search(
-            search_text=None,
+            search_text=clean_query,
+            search_fields=["content"],
             vector_queries=[vector_query],
             filter=filter_expression,
             select=[

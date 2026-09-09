@@ -6,14 +6,14 @@ from ficopilot.config import Settings
 from ficopilot.document_rag.azure_answer_provider import (
     AzureDocumentAnswerProvider,
 )
+from ficopilot.document_rag.azure_search_index import (
+    AzureAiSearchDocumentIndex,
+)
 from ficopilot.document_rag.ingestion import (
     PdfIngestionService,
 )
 from ficopilot.document_rag.service import (
     DocumentRagService,
-)
-from ficopilot.document_rag.azure_search_index import (
-    AzureAiSearchDocumentIndex,
 )
 from ficopilot.research.azure_scope_provider import (
     AzureResearchScopeProvider,
