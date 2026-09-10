@@ -163,8 +163,6 @@ class Settings(BaseSettings):
         ).strip()
 
         if not url:
-            raise RuntimeError(
-                "DATA_AGENT_DATABASE_URL is required."
-            )
+            raise RuntimeError("DATA_AGENT_DATABASE_URL is required.")
 
         return DatabaseConfig(url=url)

@@ -1,3 +1,4 @@
+from ficopilot.contracts.data import SqlQueryResult
 from ficopilot.contracts.document import (
     DocumentAnswer,
     DocumentAnswerDraft,
@@ -38,5 +39,6 @@ __all__ = [
     "SearchHit",
     "SourceDecision",
     "SourceSelection",
+    "SqlQueryResult",
     "SynthesisDraft",
 ]
