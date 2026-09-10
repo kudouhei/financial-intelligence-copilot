@@ -114,11 +114,11 @@ class AzureSqlGenerationProvider:
                 (
                     "human",
                     """
-Database schema:
-{schema_context}
+                    Database schema:
+                    {schema_context}
 
-Financial data question:
-{question}
+                    Financial data question:
+                    {question}
                     """.strip(),
                 ),
             ]
