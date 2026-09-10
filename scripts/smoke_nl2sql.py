@@ -8,6 +8,9 @@ from ficopilot.data_agent.database import (
 from ficopilot.data_agent.sql_executor import (
     SafeSqlExecutor,
 )
+from ficopilot.data_agent.schema_catalog import (
+    PostgresSchemaCatalog,
+)
 
 
 def main() -> None:
@@ -22,12 +25,19 @@ def main() -> None:
         config=model_config,
     )
 
+    engine = create_database_engine(database_config)
+
+    catalog = PostgresSchemaCatalog(engine=engine)
+    schema_context = catalog.describe()
+
     executor = SafeSqlExecutor(
-        engine=create_database_engine(database_config),
+        engine=engine,
         max_rows=50,
     )
-
-    draft = provider.generate(question)
+    draft = provider.generate(
+        question,
+        schema_context=schema_context,
+    )
 
     print(f"question={question}")
     print(f"cannot_answer={draft.cannot_answer}")
