@@ -1,4 +1,9 @@
-from ficopilot.contracts.data import SqlDraft, SqlQueryResult
+from ficopilot.contracts.data import (
+    DataAgentResult,
+    DataQuestion,
+    SqlDraft,
+    SqlQueryResult,
+)
 from ficopilot.contracts.document import (
     DocumentAnswer,
     DocumentAnswerDraft,
@@ -24,6 +29,8 @@ from ficopilot.contracts.selection import SourceDecision, SourceSelection
 __all__ = [
     "Citation",
     "Claim",
+    "DataAgentResult",
+    "DataQuestion",
     "DocumentAnswer",
     "DocumentAnswerDraft",
     "DocumentChunk",

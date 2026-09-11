@@ -1,4 +1,5 @@
 from ficopilot.config import Settings
+from ficopilot.contracts import DataQuestion
 from ficopilot.data_agent.azure_sql_provider import (
     AzureSqlGenerationProvider,
 )
@@ -8,6 +9,7 @@ from ficopilot.data_agent.database import (
 from ficopilot.data_agent.schema_catalog import (
     PostgresSchemaCatalog,
 )
+from ficopilot.data_agent.service import DataAgentService
 from ficopilot.data_agent.sql_executor import (
     SafeSqlExecutor,
 )
@@ -28,27 +30,34 @@ def main() -> None:
     engine = create_database_engine(database_config)
 
     catalog = PostgresSchemaCatalog(engine=engine)
-    schema_context = catalog.describe()
 
     executor = SafeSqlExecutor(
         engine=engine,
         max_rows=50,
     )
-    draft = provider.generate(
-        question,
-        schema_context=schema_context,
+
+    service = DataAgentService(
+        schema_catalog=catalog,
+        sql_provider=provider,
+        sql_executor=executor,
     )
 
-    print(f"question={question}")
+    response = service.run(
+        DataQuestion(question=question),
+    )
+
+    draft = response.draft
+
+    print(f"question={response.question}")
     print(f"cannot_answer={draft.cannot_answer}")
     print(f"explanation={draft.explanation}")
     print(f"assumptions={draft.assumptions}")
     print(f"sql=\n{draft.sql}")
 
-    if draft.cannot_answer:
+    if response.query_result is None:
         return
 
-    result = executor.execute(draft.sql)
+    result = response.query_result
 
     print(f"columns={result.columns}")
     print(f"rows={result.rows}")
