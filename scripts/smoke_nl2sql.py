@@ -5,11 +5,11 @@ from ficopilot.data_agent.azure_sql_provider import (
 from ficopilot.data_agent.database import (
     create_database_engine,
 )
-from ficopilot.data_agent.sql_executor import (
-    SafeSqlExecutor,
-)
 from ficopilot.data_agent.schema_catalog import (
     PostgresSchemaCatalog,
+)
+from ficopilot.data_agent.sql_executor import (
+    SafeSqlExecutor,
 )
 
 

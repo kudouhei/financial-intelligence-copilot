@@ -4,7 +4,6 @@ from langchain_openai import ChatOpenAI
 from ficopilot.config import AzureOpenAIConfig
 from ficopilot.contracts import SqlDraft
 
-
 SYSTEM_PROMPT = """
 You translate financial questions into PostgreSQL SELECT queries.
 
