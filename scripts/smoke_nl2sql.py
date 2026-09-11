@@ -1,5 +1,8 @@
 from ficopilot.config import Settings
 from ficopilot.contracts import DataQuestion
+from ficopilot.data_agent.azure_answer_provider import (
+    AzureDataAnswerProvider,
+)
 from ficopilot.data_agent.azure_sql_provider import (
     AzureSqlGenerationProvider,
 )
@@ -16,7 +19,8 @@ from ficopilot.data_agent.sql_executor import (
 
 
 def main() -> None:
-    question = "What were the EIB liquidity coverage ratio values in 2023 and 2024?"
+    # question = "What were the EIB liquidity coverage ratio values in 2023 and 2024?"
+    question = "What was Microsoft's net income in 2024?"
 
     settings = Settings()
 
@@ -35,11 +39,15 @@ def main() -> None:
         engine=engine,
         max_rows=50,
     )
+    answer_provider = AzureDataAnswerProvider(
+        config=model_config,
+    )
 
     service = DataAgentService(
         schema_catalog=catalog,
         sql_provider=provider,
         sql_executor=executor,
+        answer_provider=answer_provider,
     )
 
     response = service.run(
@@ -47,6 +55,9 @@ def main() -> None:
     )
 
     draft = response.draft
+
+    print(f"answer={response.answer}")
+    print(f"warnings={response.warnings}")
 
     print(f"question={response.question}")
     print(f"cannot_answer={draft.cannot_answer}")

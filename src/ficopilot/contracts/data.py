@@ -58,6 +58,7 @@ class DataAgentResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     question: NonBlankText
+    answer: NonBlankText
     draft: SqlDraft
     query_result: SqlQueryResult | None = None
     warnings: list[NonBlankText] = Field(default_factory=list)
@@ -73,3 +74,10 @@ class DataAgentResult(BaseModel):
             raise ValueError("An answerable question must contain a query result.")
 
         return self
+
+
+class DataAnswerDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: NonBlankText
+    warnings: list[NonBlankText] = Field(default_factory=list)
