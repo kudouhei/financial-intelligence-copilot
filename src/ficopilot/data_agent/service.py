@@ -33,6 +33,13 @@ class SqlGenerationProvider(Protocol):
         question: str,
         *,
         schema_context: str,
+    ) -> SqlDraft: ...
+
+    def repair(
+        self,
+        question: str,
+        *,
+        schema_context: str,
         failed_sql: str,
         error_message: str,
     ) -> SqlDraft: ...

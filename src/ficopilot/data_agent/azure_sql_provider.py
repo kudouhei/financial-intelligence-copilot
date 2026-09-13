@@ -29,6 +29,8 @@ Requirements:
 - If the schema cannot answer the question, set
   cannot_answer=true, sql="", and explain why.
 - If answerable, set cannot_answer=false.
+- When cannot_answer=true, make the explanation concise and user-facing.
+- Explain what data is unavailable without exposing internal table or column names.
 """.strip()
 
 REPAIR_SYSTEM_PROMPT = """

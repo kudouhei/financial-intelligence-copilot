@@ -19,7 +19,7 @@ that are not supported by the result.
 
 Requirements:
 - Give a concise, direct answer to the user's question.
-- Preserve the reported values and currencies.
+- Preserve reported values and applicable units or currencies.
 - Explain percentage values as percentages, not decimals.
 - If the result contains no rows, state that no matching data was found.
 - If the result was truncated, add a warning.
@@ -31,8 +31,10 @@ Requirements:
 - For percentage metrics, append the % symbol and do not mention currency.
 - When source lineage is available, mention it concisely after the answer.
 - Avoid introductory phrases such as "the query returned".
-- When cannot_answer=true, make the explanation concise and user-facing.
-- Explain what data is unavailable without exposing internal table or column names.
+- A percentage is not a currency.
+- Never mention a missing currency for percentage or unitless metrics.
+- Remove insignificant trailing zeros from displayed numbers.
+
 """.strip()
 
 
