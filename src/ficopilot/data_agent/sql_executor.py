@@ -1,7 +1,7 @@
 from collections.abc import Collection
 
 from sqlalchemy import Engine
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import DataError, ProgrammingError
 from sqlglot import exp, parse
 from sqlglot.errors import ParseError
 from sqlglot.optimizer.scope import build_scope
@@ -130,7 +130,7 @@ class SafeSqlExecutor:
                 rows = [dict(row._mapping) for row in result]
                 columns = list(result.keys())
 
-        except DBAPIError as error:
+        except (ProgrammingError, DataError) as error:
             database_message = str(error.orig)[:1000]
 
             raise SqlExecutionError(

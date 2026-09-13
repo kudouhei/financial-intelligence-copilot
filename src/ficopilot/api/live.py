@@ -3,6 +3,16 @@ from langchain_openai import OpenAIEmbeddings
 
 from ficopilot.api.app import create_app
 from ficopilot.config import Settings
+from ficopilot.data_agent.azure_answer_provider import (
+    AzureDataAnswerProvider,
+)
+from ficopilot.data_agent.azure_sql_provider import (
+    AzureSqlGenerationProvider,
+)
+from ficopilot.data_agent.database import create_database_engine
+from ficopilot.data_agent.schema_catalog import PostgresSchemaCatalog
+from ficopilot.data_agent.service import DataAgentService
+from ficopilot.data_agent.sql_executor import SafeSqlExecutor
 from ficopilot.document_rag.azure_answer_provider import (
     AzureDocumentAnswerProvider,
 )
@@ -95,8 +105,34 @@ def create_live_document_service() -> DocumentRagService:
     )
 
 
+def create_live_data_service() -> DataAgentService:
+    settings = Settings()
+
+    model_config = settings.require_azure_openai_config()
+    database_config = settings.require_data_agent_database_config()
+
+    engine = create_database_engine(database_config)
+
+    return DataAgentService(
+        schema_catalog=PostgresSchemaCatalog(
+            engine=engine,
+        ),
+        sql_provider=AzureSqlGenerationProvider(
+            config=model_config,
+        ),
+        sql_executor=SafeSqlExecutor(
+            engine=engine,
+            max_rows=100,
+        ),
+        answer_provider=AzureDataAnswerProvider(
+            config=model_config,
+        ),
+    )
+
+
 def create_live_app() -> FastAPI:
     return create_app(
         research_service=create_live_service(),
         document_service=create_live_document_service(),
+        data_service=create_live_data_service(),
     )
