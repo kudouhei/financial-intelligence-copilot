@@ -7,6 +7,10 @@ from ficopilot.contracts import (
     SqlDraft,
     SqlQueryResult,
 )
+from ficopilot.data_agent.sql_executor import (
+    SqlExecutionError,
+    UnsafeSqlError,
+)
 
 
 class DataAnswerProvider(Protocol):
@@ -29,11 +33,17 @@ class SqlGenerationProvider(Protocol):
         question: str,
         *,
         schema_context: str,
+        failed_sql: str,
+        error_message: str,
     ) -> SqlDraft: ...
 
 
 class SqlExecutor(Protocol):
     def execute(self, sql: str) -> SqlQueryResult: ...
+
+
+class SqlRepairExhaustedError(RuntimeError):
+    """Raised when SQL still fails after one repair attempt."""
 
 
 class DataAgentService:
@@ -66,7 +76,40 @@ class DataAgentService:
                 query_result=None,
             )
 
-        query_result = self._sql_executor.execute(draft.sql)
+        warnings: list[str] = []
+
+        try:
+            query_result = self._sql_executor.execute(draft.sql)
+
+        except (UnsafeSqlError, SqlExecutionError) as error:
+            failed_sql = draft.sql
+
+            draft = self._sql_provider.repair(
+                request.question,
+                schema_context=schema_context,
+                failed_sql=failed_sql,
+                error_message=str(error),
+            )
+
+            warnings.append(
+                "The initial SQL failed validation or execution and was repaired once."
+            )
+
+            if draft.cannot_answer:
+                return DataAgentResult(
+                    question=request.question,
+                    answer=draft.explanation,
+                    draft=draft,
+                    query_result=None,
+                    warnings=warnings,
+                )
+
+            try:
+                query_result = self._sql_executor.execute(draft.sql)
+            except (UnsafeSqlError, SqlExecutionError) as final_error:
+                raise SqlRepairExhaustedError(
+                    "The generated SQL still failed after one repair attempt."
+                ) from final_error
 
         answer_draft = self._answer_provider.answer(
             question=request.question,
@@ -79,5 +122,8 @@ class DataAgentService:
             answer=answer_draft.answer,
             draft=draft,
             query_result=query_result,
-            warnings=answer_draft.warnings,
+            warnings=[
+                *warnings,
+                *answer_draft.warnings,
+            ],
         )

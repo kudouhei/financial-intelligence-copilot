@@ -1,6 +1,7 @@
 from collections.abc import Collection
 
 from sqlalchemy import Engine
+from sqlalchemy.exc import DBAPIError
 from sqlglot import exp, parse
 from sqlglot.errors import ParseError
 from sqlglot.optimizer.scope import build_scope
@@ -29,6 +30,10 @@ FORBIDDEN_EXPRESSIONS = (
 
 
 class UnsafeSqlError(ValueError):
+    pass
+
+
+class SqlExecutionError(RuntimeError):
     pass
 
 
@@ -115,15 +120,22 @@ class SafeSqlExecutor:
             f"LIMIT {self._max_rows + 1}"
         )
 
-        with self._engine.connect() as connection, connection.begin():
-            connection.exec_driver_sql("SET TRANSACTION READ ONLY")
-            connection.exec_driver_sql("SET LOCAL statement_timeout = '5s'")
+        try:
+            with self._engine.connect() as connection, connection.begin():
+                connection.exec_driver_sql("SET TRANSACTION READ ONLY")
+                connection.exec_driver_sql("SET LOCAL statement_timeout = '5s'")
 
-            result = connection.exec_driver_sql(limited_sql)
+                result = connection.exec_driver_sql(limited_sql)
 
-            rows = [dict(row._mapping) for row in result]
+                rows = [dict(row._mapping) for row in result]
+                columns = list(result.keys())
 
-            columns = list(result.keys())
+        except DBAPIError as error:
+            database_message = str(error.orig)[:1000]
+
+            raise SqlExecutionError(
+                f"PostgreSQL rejected the generated query: {database_message}"
+            ) from error
 
         truncated = len(rows) > self._max_rows
         visible_rows = rows[: self._max_rows]
