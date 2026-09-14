@@ -1,10 +1,13 @@
-from typing import Annotated, Any, Self
+from datetime import date
+from decimal import Decimal
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     StringConstraints,
+    field_validator,
     model_validator,
 )
 
@@ -81,3 +84,58 @@ class DataAnswerDraft(BaseModel):
 
     answer: NonBlankText
     warnings: list[NonBlankText] = Field(default_factory=list)
+
+
+class FinancialFactInput(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+    entity_code: str = Field(
+        min_length=1,
+        max_length=32,
+        pattern=r"^[A-Z0-9_-]+$",
+    )
+    fiscal_year: int = Field(ge=1900, le=2100)
+    period_type: Literal["annual", "quarterly"]
+    fiscal_quarter: int = Field(ge=0, le=4)
+    period_end: date
+
+    metric_code: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9_]+$",
+    )
+    metric_value: Decimal
+
+    currency: str | None = Field(
+        default=None,
+        min_length=3,
+        max_length=3,
+        pattern=r"^[A-Z]{3}$",
+    )
+
+    source_document: NonBlankText
+    source_page: int = Field(ge=1)
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_empty_currency(
+        cls,
+        value: object,
+    ) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+
+        return value
+
+    @model_validator(mode="after")
+    def validate_period(self) -> Self:
+        if self.period_type == "annual" and self.fiscal_quarter != 0:
+            raise ValueError("Annual periods must use fiscal_quarter=0.")
+
+        if self.period_type == "quarterly" and self.fiscal_quarter == 0:
+            raise ValueError("Quarterly periods must use fiscal_quarter=1..4.")
+
+        return self

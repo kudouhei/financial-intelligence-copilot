@@ -2,6 +2,7 @@ from ficopilot.contracts.data import (
     DataAgentResult,
     DataAnswerDraft,
     DataQuestion,
+    FinancialFactInput,
     SqlDraft,
     SqlQueryResult,
 )
@@ -41,6 +42,7 @@ __all__ = [
     "DocumentQuestion",
     "DocumentRecord",
     "DocumentUploadResult",
+    "FinancialFactInput",
     "ResearchRequest",
     "ResearchResult",
     "ResearchScope",

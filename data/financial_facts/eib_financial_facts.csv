@@ -1,0 +1,10 @@
+entity_code,fiscal_year,period_type,fiscal_quarter,period_end,metric_code,metric_value,currency,source_document,source_page
+EIB,2023,annual,0,2023-12-31,liquidity_coverage_ratio,423.7,,eib-financial-report-2024.pdf,8
+EIB,2023,annual,0,2023-12-31,net_stable_funding_ratio,118.3,,eib-financial-report-2024.pdf,8
+EIB,2023,annual,0,2023-12-31,outstanding_borrowings,434800,EUR,eib-financial-report-2024.pdf,8
+EIB,2024,annual,0,2024-12-31,total_liquidity_ratio,60.3,,eib-financial-report-2024.pdf,31
+EIB,2024,annual,0,2024-12-31,minimum_total_liquidity_ratio,25,,eib-financial-report-2024.pdf,90
+EIB,2024,annual,0,2024-12-31,liquidity_coverage_ratio,724.9,,eib-financial-report-2024.pdf,8
+EIB,2024,annual,0,2024-12-31,net_stable_funding_ratio,122.2,,eib-financial-report-2024.pdf,8
+EIB,2024,annual,0,2024-12-31,outstanding_borrowings,442900,EUR,eib-financial-report-2024.pdf,8
+EIB,2024,annual,0,2024-12-31,treasury_assets,67500,EUR,eib-financial-report-2024.pdf,8
