@@ -30,7 +30,7 @@ function SourceDecisionCard({
     source: SourceScreening
   }) {
     return (
-      <li className="source-decision">
+      <li className="surface-card source-decision">
         <div className="source-decision-heading">
           <a
             href={source.url}
@@ -76,7 +76,7 @@ export function ResearchProcessPanel({
             </span>
   
             <dl className="scope-list">
-              <div>
+              <div className="surface-card">
                 <dt>Companies</dt>
                 <dd>
                   {scope.companies.length > 0
@@ -85,7 +85,7 @@ export function ResearchProcessPanel({
                 </dd>
               </div>
   
-              <div>
+              <div className="surface-card">
                 <dt>Document types</dt>
                 <dd>
                   {scope.document_types.length > 0
@@ -94,7 +94,7 @@ export function ResearchProcessPanel({
                 </dd>
               </div>
   
-              <div>
+              <div className="surface-card">
                 <dt>Report years</dt>
                 <dd>
                   {scope.report_years.length > 0
@@ -103,7 +103,7 @@ export function ResearchProcessPanel({
                 </dd>
               </div>
   
-              <div>
+              <div className="surface-card">
                 <dt>Latest requested</dt>
                 <dd>
                   {scope.latest_requested ? 'Yes' : 'No'}

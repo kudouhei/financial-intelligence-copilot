@@ -14,7 +14,7 @@ export function DocumentAnswerPanel({
 
   return (
     <section
-      className="document-panel document-answer-panel"
+      className="panel"
       aria-live="polite"
     >
       <div className="panel-heading">
@@ -23,13 +23,13 @@ export function DocumentAnswerPanel({
       </div>
 
       {state.status === 'loading' && (
-        <div className="document-answer-state">
+        <div className="muted-state">
           Retrieving evidence and generating an answer…
         </div>
       )}
 
       {state.status === 'error' && (
-        <div className="document-error" role="alert">
+        <div className="error-state" role="alert">
           {state.message}
         </div>
       )}
@@ -39,8 +39,8 @@ export function DocumentAnswerPanel({
           <span
             className={
               state.data.insufficient_evidence
-                ? 'answer-status answer-status--insufficient'
-                : 'answer-status answer-status--supported'
+                ? 'status-chip status-chip--warning'
+                : 'status-chip status-chip--success'
             }
           >
             {state.data.insufficient_evidence
@@ -70,7 +70,7 @@ export function DocumentAnswerPanel({
           )}
 
           {state.data.warnings.map((warning) => (
-            <p key={warning} className="document-warning">
+            <p key={warning} className="warning">
               {warning}
             </p>
           ))}

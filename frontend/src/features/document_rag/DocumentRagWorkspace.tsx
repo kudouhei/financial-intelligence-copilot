@@ -9,13 +9,13 @@ export function DocumentRagWorkspace() {
   const { state, upload, ask } = useDocumentRag()
 
   return (
-    <div className="document-workspace">
+    <div className="workspace-grid">
       <DocumentUploadPanel
         state={state.upload}
         onUpload={upload}
       />
 
-      <div className="document-column">
+      <div className="workspace-column">
         <DocumentQuestionPanel
           isReady={state.upload.status === 'success'}
           isSubmitting={

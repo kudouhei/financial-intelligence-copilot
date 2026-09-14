@@ -8,7 +8,7 @@ export function CitationCard({
   citation,
 }: CitationCardProps) {
   return (
-    <article className="citation-card">
+    <article className="surface-card citation-card">
       <a
         href={citation.url}
         target="_blank"

@@ -22,7 +22,7 @@ export function ResearchForm({ isSubmitting, onSubmit }: ResearchFormProps) {
 
     return (
         <form
-          className="panel research-form"
+          className="panel stack-form"
           onSubmit={handleSubmit}
         >
           <div className="panel-heading">
@@ -33,6 +33,7 @@ export function ResearchForm({ isSubmitting, onSubmit }: ResearchFormProps) {
           <label htmlFor="question">Question</label>
           <textarea
             id="question"
+            className="form-control"
             value={question}
             onChange={(event) =>
               setQuestion(event.target.value)
@@ -42,11 +43,12 @@ export function ResearchForm({ isSubmitting, onSubmit }: ResearchFormProps) {
             required
           />
     
-          <div className="form-row">
+          <div className="research-form-row">
             <div>
               <label htmlFor="as-of">As of (UTC)</label>
               <input
                 id="as-of"
+                className="form-control"
                 type="datetime-local"
                 value={asOf}
                 onChange={(event) =>
@@ -62,6 +64,7 @@ export function ResearchForm({ isSubmitting, onSubmit }: ResearchFormProps) {
               </label>
               <input
                 id="max-sources"
+                className="form-control"
                 type="number"
                 min={1}
                 max={20}
@@ -75,6 +78,7 @@ export function ResearchForm({ isSubmitting, onSubmit }: ResearchFormProps) {
           </div>
     
           <button
+            className="primary-button"
             type="submit"
             disabled={isSubmitting || !question.trim()}
           >

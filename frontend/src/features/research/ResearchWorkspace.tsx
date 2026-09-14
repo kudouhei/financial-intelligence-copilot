@@ -9,7 +9,7 @@ export function ResearchWorkspace() {
   const { state, execute } = useResearch()
 
   return (
-    <div className="workspace">
+    <div className="workspace-grid">
       <ResearchForm
         isSubmitting={state.status === 'loading'}
         onSubmit={execute}

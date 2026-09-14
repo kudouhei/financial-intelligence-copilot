@@ -8,7 +8,7 @@ export function DocumentCitationCard({
   citation,
 }: DocumentCitationCardProps) {
   return (
-    <article className="document-citation">
+    <article className="surface-card document-citation">
       <header>
         <strong>PDF page {citation.page_number}</strong>
 

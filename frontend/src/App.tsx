@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { DocumentRagWorkspace } from './features/document_rag/DocumentRagWorkspace'
 import { ResearchWorkspace } from './features/research/ResearchWorkspace'
 import { DataAgentWorkspace } from './features/data_agent/DataAgentWorkspace'
-import './App.css'
 
 const workspaceCopy = {
   research: {

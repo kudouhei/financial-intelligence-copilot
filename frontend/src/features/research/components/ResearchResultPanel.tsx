@@ -10,7 +10,7 @@ export function ResearchResultPanel({
 }: ResearchResultPanelProps) {
   return (
     <section
-      className="panel results-panel"
+      className="panel"
       aria-live="polite"
     >
       <div className="panel-heading">
@@ -42,17 +42,18 @@ export function ResearchResultPanel({
         <div className="research-result">
           <div>
             <span className="result-label">Answer</span>
-            <p className="answer">
+            <p className="research-answer">
               {state.result.answer}
             </p>
           </div>
 
           <div>
             <span className="result-label">Claims</span>
-            <ul className="claims">
+            <ul className="research-claims">
               {state.result.claims.map(
                 (claim, index) => (
                   <li
+                    className="surface-card"
                     key={`${claim.statement}-${index}`}
                   >
                     <p>{claim.statement}</p>
@@ -71,7 +72,7 @@ export function ResearchResultPanel({
               Citations
             </span>
 
-            <div className="citations">
+            <div className="research-citations">
               {state.result.citations.map(
                 (citation) => (
                   <CitationCard
@@ -89,7 +90,7 @@ export function ResearchResultPanel({
             </div>
           )}
 
-          <footer className="result-footer">
+          <footer className="research-result-footer">
             Trace ID: {state.result.trace_id}
           </footer>
         </div>

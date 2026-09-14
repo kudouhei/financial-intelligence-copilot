@@ -28,7 +28,7 @@ export function DocumentQuestionPanel({
   }
 
   return (
-    <section className="document-panel">
+    <section className="panel">
       <div className="panel-heading">
         <p className="eyebrow">
           02 / Document question
@@ -37,7 +37,7 @@ export function DocumentQuestionPanel({
       </div>
 
       <form
-        className="document-question-form"
+        className="stack-form"
         onSubmit={handleSubmit}
       >
         <label htmlFor="document-question">
@@ -46,6 +46,7 @@ export function DocumentQuestionPanel({
 
         <textarea
           id="document-question"
+          className="form-control"
           value={question}
           onChange={(event) =>
             setQuestion(event.target.value)
@@ -62,6 +63,7 @@ export function DocumentQuestionPanel({
 
         <input
           id="document-top-k"
+          className="form-control"
           type="number"
           value={topK}
           min={1}
@@ -79,6 +81,7 @@ export function DocumentQuestionPanel({
         )}
 
         <button
+          className="primary-button"
           type="submit"
           disabled={
             !isReady ||

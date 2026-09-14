@@ -27,8 +27,8 @@ export function DataQuestionPanel({
   }
 
   return (
-    <section className="data-panel">
-      <div className="data-panel-heading">
+    <section className="panel">
+      <div className="panel-heading">
         <p className="eyebrow">Data question</p>
         <h2>Query financial metrics</h2>
         <p>
@@ -38,13 +38,14 @@ export function DataQuestionPanel({
       </div>
 
       <form
-        className="data-question-form"
+        className="stack-form"
         onSubmit={handleSubmit}
       >
         <label htmlFor="data-question">Question</label>
 
         <textarea
           id="data-question"
+          className="form-control"
           value={question}
           rows={6}
           minLength={3}
@@ -71,7 +72,7 @@ export function DataQuestionPanel({
         </div>
 
         <button
-          className="data-submit"
+          className="primary-button"
           type="submit"
           disabled={
             isSubmitting || !question.trim()

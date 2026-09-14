@@ -25,14 +25,14 @@ export function DocumentUploadPanel({
   }
 
   return (
-    <section className="document-panel">
+    <section className="panel">
       <div className="panel-heading">
         <p className="eyebrow">Document ingestion</p>
         <h2>Upload a financial document</h2>
       </div>
 
       <form
-        className="document-upload-form"
+        className="stack-form document-upload-form"
         onSubmit={handleSubmit}
       >
         <label htmlFor="document-file">
@@ -41,6 +41,7 @@ export function DocumentUploadPanel({
 
         <input
           id="document-file"
+          className="form-control"
           type="file"
           accept=".pdf,application/pdf"
           onChange={(event) =>
@@ -50,6 +51,7 @@ export function DocumentUploadPanel({
         />
 
         <button
+          className="primary-button"
           type="submit"
           disabled={!file || state.status === 'loading'}
         >
@@ -60,7 +62,7 @@ export function DocumentUploadPanel({
       </form>
 
       {state.status === 'error' && (
-        <div className="document-error" role="alert">
+        <div className="error-state" role="alert">
           {state.message}
         </div>
       )}
@@ -90,7 +92,7 @@ export function DocumentUploadPanel({
           </dl>
 
           {state.data.warnings.map((warning) => (
-            <p key={warning} className="document-warning">
+            <p key={warning} className="warning">
               {warning}
             </p>
           ))}

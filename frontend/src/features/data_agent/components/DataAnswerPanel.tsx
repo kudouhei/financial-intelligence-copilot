@@ -10,7 +10,7 @@ export function DataAnswerPanel({
 }: DataAnswerPanelProps) {
   if (state.status === 'idle') {
     return (
-      <section className="data-panel data-placeholder">
+      <section className="panel panel--placeholder">
         <p className="eyebrow">Data answer</p>
         <h2>Validated results will appear here</h2>
         <p>
@@ -24,23 +24,23 @@ export function DataAnswerPanel({
 
   return (
     <section
-      className="data-panel data-answer-panel"
+      className="panel"
       aria-live="polite"
     >
-      <div className="data-panel-heading">
+      <div className="panel-heading">
         <p className="eyebrow">Data answer</p>
         <h2>Grounded database response</h2>
       </div>
 
       {state.status === 'loading' && (
-        <div className="data-loading">
+        <div className="muted-state">
           Inspecting the schema, generating SQL and
           validating the result…
         </div>
       )}
 
       {state.status === 'error' && (
-        <div className="data-error" role="alert">
+        <div className="error-state" role="alert">
           {state.message}
         </div>
       )}
@@ -50,8 +50,8 @@ export function DataAnswerPanel({
           <span
             className={
               state.result.draft.cannot_answer
-                ? 'data-status data-status--unavailable'
-                : 'data-status data-status--complete'
+                ? 'status-chip status-chip--warning'
+                : 'status-chip status-chip--success'
             }
           >
             {state.result.draft.cannot_answer
@@ -64,7 +64,7 @@ export function DataAnswerPanel({
           </p>
 
           {state.result.warnings.map((warning) => (
-            <p key={warning} className="data-warning">
+            <p key={warning} className="warning">
               {warning}
             </p>
           ))}

@@ -8,7 +8,7 @@ export function DataAgentWorkspace() {
   const { state, execute } = useDataAgent()
 
   return (
-    <div className="data-workspace">
+    <div className="workspace-grid">
       <DataQuestionPanel
         isSubmitting={state.status === 'loading'}
         onSubmit={execute}
