@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 
+import { BusyText } from '../../../components/BusyText'
+
 type DocumentQuestionPanelProps = {
   isReady: boolean
   isSubmitting: boolean
@@ -83,15 +85,18 @@ export function DocumentQuestionPanel({
         <button
           className="primary-button"
           type="submit"
+          aria-busy={isSubmitting}
           disabled={
             !isReady ||
             isSubmitting ||
             !question.trim()
           }
         >
-          {isSubmitting
-            ? 'Retrieving evidence…'
-            : 'Ask document'}
+          <BusyText
+            idle="Ask document"
+            busy="Retrieving evidence"
+            isBusy={isSubmitting}
+          />
         </button>
       </form>
     </section>

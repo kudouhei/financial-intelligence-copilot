@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 
+import { BusyText } from '../../../components/BusyText'
 import type { ResearchRequest } from '../types'
 
 type ResearchFormProps = {
@@ -80,11 +81,14 @@ export function ResearchForm({ isSubmitting, onSubmit }: ResearchFormProps) {
           <button
             className="primary-button"
             type="submit"
+            aria-busy={isSubmitting}
             disabled={isSubmitting || !question.trim()}
           >
-            {isSubmitting
-              ? 'Running research…'
-              : 'Run research'}
+            <BusyText
+              idle="Run research"
+              busy="Running research"
+              isBusy={isSubmitting}
+            />
           </button>
         </form>
       )

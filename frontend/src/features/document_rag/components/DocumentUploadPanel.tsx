@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 
+import { BusyText } from '../../../components/BusyText'
 import type { DocumentRagState } from '../hooks/useDocumentRag'
 
 type DocumentUploadPanelProps = {
@@ -53,11 +54,14 @@ export function DocumentUploadPanel({
         <button
           className="primary-button"
           type="submit"
+          aria-busy={state.status === 'loading'}
           disabled={!file || state.status === 'loading'}
         >
-          {state.status === 'loading'
-            ? 'Extracting and indexing…'
-            : 'Upload and index'}
+          <BusyText
+            idle="Upload and index"
+            busy="Extracting and indexing"
+            isBusy={state.status === 'loading'}
+          />
         </button>
       </form>
 

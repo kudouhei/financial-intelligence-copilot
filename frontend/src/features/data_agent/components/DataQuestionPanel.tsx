@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 
+import { BusyText } from '../../../components/BusyText'
+
 type DataQuestionPanelProps = {
   isSubmitting: boolean
   onSubmit: (question: string) => Promise<void>
@@ -74,13 +76,16 @@ export function DataQuestionPanel({
         <button
           className="primary-button"
           type="submit"
+          aria-busy={isSubmitting}
           disabled={
             isSubmitting || !question.trim()
           }
         >
-          {isSubmitting
-            ? 'Generating and validating SQL…'
-            : 'Ask data'}
+          <BusyText
+            idle="Ask data"
+            busy="Generating and validating SQL"
+            isBusy={isSubmitting}
+          />
         </button>
       </form>
     </section>
