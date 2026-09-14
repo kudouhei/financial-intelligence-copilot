@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { DocumentRagWorkspace } from './features/document_rag/DocumentRagWorkspace'
 import { ResearchWorkspace } from './features/research/ResearchWorkspace'
-
+import { DataAgentWorkspace } from './features/data_agent/DataAgentWorkspace'
 import './App.css'
 
 const workspaceCopy = {
@@ -17,6 +17,12 @@ const workspaceCopy = {
     title: 'Ask questions across financial documents',
     description:
       'Upload a PDF, retrieve relevant evidence, and generate page-level cited answers.',
+  },
+  data: {
+    eyebrow: 'Data agent',
+    title: 'Ask questions across financial metrics',
+    description:
+      'Generate validated SQL and explore traceable results from structured financial data.',
   },
 } as const
 
@@ -65,6 +71,17 @@ function App() {
           >
             Documents
           </button>
+
+          <button
+            id="workspace-tab-data"
+            type="button"
+            role="tab"
+            aria-selected={mode === 'data'}
+            aria-controls="workspace-panel"
+            onClick={() => setMode('data')}
+          >
+            Data
+          </button>
         </nav>
 
         <span className="status-badge">
@@ -88,11 +105,13 @@ function App() {
           role="tabpanel"
           aria-labelledby={`workspace-tab-${mode}`}
         >
-          {mode === 'research' ? (
-            <ResearchWorkspace />
-          ) : (
+          {mode === 'research' && <ResearchWorkspace />}
+
+          {mode === 'documents' && (
             <DocumentRagWorkspace />
           )}
+
+          {mode === 'data' && <DataAgentWorkspace />}
         </div>
       </main>
     </div>

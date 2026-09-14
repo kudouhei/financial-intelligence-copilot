@@ -1,0 +1,250 @@
+.data-workspace {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr);
+    gap: 20px;
+    align-items: start;
+  }
+  
+  .data-panel {
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid #dce2ea;
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 10px 30px rgb(24 39 75 / 5%);
+  }
+  
+  .data-panel-heading {
+    margin-bottom: 22px;
+  }
+  
+  .data-panel h2 {
+    margin: 0;
+    color: #102a43;
+    font-size: 22px;
+  }
+  
+  .data-panel-heading > p:last-child,
+  .data-placeholder > p:last-child {
+    margin: 10px 0 0;
+    color: #718096;
+    line-height: 1.6;
+  }
+  
+  .data-question-form {
+    display: grid;
+    gap: 12px;
+  }
+  
+  .data-question-form label {
+    color: #34495e;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .data-question-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    color: #172033;
+    background: #f8fafc;
+    font: inherit;
+    line-height: 1.55;
+    resize: vertical;
+  }
+  
+  .data-question-form textarea:focus-visible {
+    outline: 3px solid rgb(52 120 164 / 15%);
+    border-color: #3478a4;
+  }
+  
+  .data-examples {
+    display: grid;
+    gap: 8px;
+  }
+  
+  .data-examples > span {
+    color: #718096;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  
+  .data-examples button {
+    padding: 9px 11px;
+    border: 1px solid #dce2ea;
+    border-radius: 8px;
+    color: #52677d;
+    background: #f8fafc;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .data-examples button:hover:not(:disabled) {
+    border-color: #9fb9cb;
+    color: #173f5f;
+    background: #f1f7fa;
+  }
+  
+  .data-submit {
+    min-height: 46px;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 9px;
+    color: white;
+    background: #173f5f;
+    font-weight: 750;
+    cursor: pointer;
+  }
+  
+  .data-submit:disabled,
+  .data-examples button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  
+  .data-placeholder {
+    min-height: 260px;
+    border-style: dashed;
+  }
+  
+  .data-loading {
+    min-height: 140px;
+    display: grid;
+    place-items: center;
+    color: #627287;
+    text-align: center;
+  }
+  
+  .data-error,
+  .data-warning {
+    padding: 13px 14px;
+    border-radius: 9px;
+  }
+  
+  .data-error {
+    border: 1px solid #f3b3b3;
+    color: #8d2424;
+    background: #fff1f1;
+  }
+  
+  .data-warning {
+    margin: 0;
+    color: #725300;
+    background: #fff7d6;
+    font-size: 13px;
+  }
+  
+  .data-answer {
+    display: grid;
+    gap: 20px;
+  }
+  
+  .data-status {
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 750;
+  }
+  
+  .data-status--complete {
+    color: #20603d;
+    background: #e7f6ed;
+  }
+  
+  .data-status--unavailable {
+    color: #725300;
+    background: #fff7d6;
+  }
+  
+  .data-answer-text {
+    margin: 0;
+    color: #243b53;
+    font-size: 17px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  
+  .query-results-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .query-results-heading h3 {
+    margin: 0;
+    color: #34495e;
+    font-size: 14px;
+  }
+  
+  .query-results-heading span {
+    color: #718096;
+    font-size: 12px;
+  }
+  
+  .query-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #dce2ea;
+    border-radius: 9px;
+  }
+  
+  .query-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  
+  .query-table-wrapper th,
+  .query-table-wrapper td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e7ecf2;
+    text-align: left;
+    white-space: nowrap;
+  }
+  
+  .query-table-wrapper th {
+    color: #52677d;
+    background: #f8fafc;
+    font-weight: 750;
+  }
+  
+  .query-table-wrapper tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  
+  .sql-details {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 14px;
+  }
+  
+  .sql-details summary {
+    color: #17658a;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  
+  .sql-details pre {
+    overflow-x: auto;
+    margin: 12px 0 0;
+    padding: 14px;
+    border-radius: 9px;
+    color: #dbeafe;
+    background: #102a43;
+    line-height: 1.55;
+  }
+  
+  .sql-details li {
+    margin-top: 8px;
+    color: #52677d;
+    line-height: 1.5;
+  }
+  
+  @media (max-width: 860px) {
+    .data-workspace {
+      grid-template-columns: 1fr;
+    }
+  }
