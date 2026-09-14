@@ -24,7 +24,7 @@ export function DataAnswerPanel({
 
   return (
     <section
-      className="panel"
+      className="panel data-answer-panel"
       aria-live="polite"
     >
       <div className="panel-heading">
