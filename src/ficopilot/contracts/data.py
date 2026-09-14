@@ -139,3 +139,12 @@ class FinancialFactInput(BaseModel):
             raise ValueError("Quarterly periods must use fiscal_quarter=1..4.")
 
         return self
+
+
+class FinancialFactLoadResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_name: NonBlankText
+    rows_read: int = Field(ge=0)
+    periods_created: int = Field(ge=0)
+    facts_upserted: int = Field(ge=0)
