@@ -51,6 +51,7 @@ class CsvFinancialFactReader:
             raise CsvValidationError("\n".join(errors))
 
         self._validate_unique_business_keys(records)
+        self._validate_period_metadata(records)
 
         return records
 
@@ -73,3 +74,35 @@ class CsvFinancialFactReader:
                 raise CsvValidationError(f"Duplicate financial fact in CSV: {key}")
 
             seen.add(key)
+
+    def _validate_period_metadata(
+        self,
+        records: list[FinancialFactInput],
+    ) -> None:
+        first_by_period: dict[
+            tuple[str, int, str, int],
+            FinancialFactInput,
+        ] = {}
+
+        for record in records:
+            key = (
+                record.entity_code,
+                record.fiscal_year,
+                record.period_type,
+                record.fiscal_quarter,
+            )
+
+            first = first_by_period.get(key)
+
+            if first is None:
+                first_by_period[key] = record
+                continue
+
+            if (
+                record.period_end != first.period_end
+                or record.source_document != first.source_document
+            ):
+                raise CsvValidationError(
+                    f"Inconsistent period metadata for {key}: "
+                    "period_end and source_document must match."
+                )
