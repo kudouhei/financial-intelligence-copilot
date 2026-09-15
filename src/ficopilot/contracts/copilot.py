@@ -10,6 +10,10 @@ from pydantic import (
     model_validator,
 )
 
+from ficopilot.contracts.data import DataAgentResult
+from ficopilot.contracts.document import DocumentAnswer
+from ficopilot.contracts.research import ResearchResult
+
 QuestionText = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=3),
@@ -55,3 +59,14 @@ class CopilotPlan(BaseModel):
             raise ValueError("An answerable plan needs at least one module.")
 
         return self
+
+
+class CopilotEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request: CopilotRequest
+    plan: CopilotPlan
+    trace_id: NonBlankText
+    research_result: ResearchResult | None = None
+    document_result: DocumentAnswer | None = None
+    data_result: DataAgentResult | None = None

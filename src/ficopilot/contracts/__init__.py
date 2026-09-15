@@ -1,4 +1,5 @@
 from ficopilot.contracts.copilot import (
+    CopilotEvidence,
     CopilotPlan,
     CopilotRequest,
 )
@@ -36,6 +37,7 @@ from ficopilot.contracts.selection import SourceDecision, SourceSelection
 __all__ = [
     "Citation",
     "Claim",
+    "CopilotEvidence",
     "CopilotPlan",
     "CopilotRequest",
     "DataAgentResult",
