@@ -1,0 +1,57 @@
+from datetime import UTC, datetime
+from typing import Annotated, Self
+
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    model_validator,
+)
+
+QuestionText = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=3),
+]
+
+NonBlankText = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1),
+]
+
+
+class CopilotRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: QuestionText
+    document_id: NonBlankText | None = None
+    as_of: AwareDatetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class CopilotPlan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    research_question: QuestionText | None
+    document_question: QuestionText | None
+    data_question: QuestionText | None
+    cannot_answer: bool
+    routing_reason: NonBlankText
+
+    @model_validator(mode="after")
+    def validate_routes(self) -> Self:
+        has_route = any(
+            (
+                self.research_question,
+                self.document_question,
+                self.data_question,
+            )
+        )
+
+        if self.cannot_answer and has_route:
+            raise ValueError("A cannot-answer plan must not route to a module.")
+
+        if not self.cannot_answer and not has_route:
+            raise ValueError("An answerable plan needs at least one module.")
+
+        return self
