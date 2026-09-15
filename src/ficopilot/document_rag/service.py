@@ -104,8 +104,7 @@ class DocumentRagService:
         self,
         request: DocumentQuestion,
     ) -> DocumentAnswer:
-        if request.document_id not in self._documents:
-            raise DocumentNotFoundError(f"Document not found: {request.document_id}")
+        self.get_document_record(request.document_id)
 
         retrieved_chunks = self._index.search(
             request.question,
@@ -168,3 +167,14 @@ class DocumentRagService:
             insufficient_evidence=draft.insufficient_evidence,
             warnings=warnings,
         )
+
+    def get_document_record(
+        self,
+        document_id: str,
+    ) -> DocumentRecord:
+        record = self._documents.get(document_id)
+
+        if record is None:
+            raise DocumentNotFoundError(f"Document not found: {document_id}")
+
+        return record.model_copy(deep=True)

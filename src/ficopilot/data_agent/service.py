@@ -68,7 +68,7 @@ class DataAgentService:
         self._answer_provider = answer_provider
 
     def run(self, request: DataQuestion) -> DataAgentResult:
-        schema_context = self._schema_catalog.describe()
+        schema_context = self.describe_available_data()
 
         draft = self._sql_provider.generate(
             request.question,
@@ -134,3 +134,6 @@ class DataAgentService:
                 *answer_draft.warnings,
             ],
         )
+
+    def describe_available_data(self) -> str:
+        return self._schema_catalog.describe()
