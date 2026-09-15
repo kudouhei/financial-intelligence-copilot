@@ -1,11 +1,12 @@
 from datetime import UTC, datetime
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
+    HttpUrl,
     StringConstraints,
     model_validator,
 )
@@ -70,3 +71,14 @@ class CopilotEvidence(BaseModel):
     research_result: ResearchResult | None = None
     document_result: DocumentAnswer | None = None
     data_result: DataAgentResult | None = None
+
+
+class CopilotSource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_id: NonBlankText
+    module: Literal["research", "document", "data"]
+    label: NonBlankText
+    excerpt: NonBlankText
+    url: HttpUrl | None = None
+    page_number: int | None = Field(default=None, ge=1)
