@@ -1,6 +1,8 @@
 from typing import Protocol
 from uuid import uuid4
 
+from langsmith import traceable
+
 from ficopilot.contracts import (
     CopilotAnswer,
     CopilotEvidence,
@@ -106,6 +108,19 @@ class CopilotOrchestrator:
 
         return evidence
 
+    @traceable(
+        name="financial_intelligence_copilot",
+        run_type="chain",
+        tags=[
+            "ficopilot",
+            "copilot",
+            "development",
+        ],
+        metadata={
+            "workflow": "financial_intelligence_copilot",
+            "environment": "development",
+        },
+    )
     def run(self, request: CopilotRequest) -> CopilotAnswer:
         evidence = self.gather_evidence(request)
 
