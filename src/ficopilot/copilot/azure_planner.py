@@ -1,5 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from langsmith import traceable
 
 from ficopilot.config import AzureOpenAIConfig
 from ficopilot.contracts import CopilotPlan, CopilotRequest
@@ -82,6 +83,10 @@ class AzureCopilotPlanner:
 
         self._chain = prompt | structured_model
 
+    @traceable(
+        name="copilot_plan",
+        run_type="chain",
+    )
     def plan(
         self,
         request: CopilotRequest,

@@ -1,5 +1,7 @@
 from typing import Protocol
 
+from langsmith import traceable
+
 from ficopilot.contracts import (
     DocumentAnswer,
     DocumentAnswerDraft,
@@ -100,6 +102,10 @@ class DocumentRagService:
 
         return upload_result
 
+    @traceable(
+        name="document_rag",
+        run_type="chain",
+    )
     def ask(
         self,
         request: DocumentQuestion,

@@ -1,5 +1,7 @@
 from typing import Protocol
 
+from langsmith import traceable
+
 from ficopilot.contracts import (
     DataAgentResult,
     DataAnswerDraft,
@@ -67,6 +69,10 @@ class DataAgentService:
         self._sql_executor = sql_executor
         self._answer_provider = answer_provider
 
+    @traceable(
+        name="data_agent",
+        run_type="chain",
+    )
     def run(self, request: DataQuestion) -> DataAgentResult:
         schema_context = self.describe_available_data()
 
