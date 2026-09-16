@@ -82,3 +82,25 @@ class CopilotSource(BaseModel):
     excerpt: NonBlankText
     url: HttpUrl | None = None
     page_number: int | None = Field(default=None, ge=1)
+
+
+class CopilotSynthesisDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: NonBlankText
+    cited_source_ids: list[NonBlankText]
+    coverage: Literal["complete", "partial", "insufficient"]
+    warnings: list[NonBlankText]
+
+    @model_validator(mode="after")
+    def validate_citations(self) -> Self:
+        if len(self.cited_source_ids) != len(set(self.cited_source_ids)):
+            raise ValueError("Cited source IDs must be unique.")
+
+        if self.coverage == "insufficient" and self.cited_source_ids:
+            raise ValueError("An insufficient answer must not cite unrelated sources.")
+
+        if self.coverage != "insufficient" and not self.cited_source_ids:
+            raise ValueError("A supported answer must cite at least one source.")
+
+        return self

@@ -3,6 +3,7 @@ from ficopilot.contracts.copilot import (
     CopilotPlan,
     CopilotRequest,
     CopilotSource,
+    CopilotSynthesisDraft,
 )
 from ficopilot.contracts.data import (
     DataAgentResult,
@@ -42,6 +43,7 @@ __all__ = [
     "CopilotPlan",
     "CopilotRequest",
     "CopilotSource",
+    "CopilotSynthesisDraft",
     "DataAgentResult",
     "DataAnswerDraft",
     "DataQuestion",
