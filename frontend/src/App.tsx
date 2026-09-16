@@ -73,7 +73,7 @@ function App() {
               type="button"
               role="tab"
               aria-selected={mode === tab.id}
-              aria-controls="workspace-panel"
+              aria-controls={`workspace-panel-${tab.id}`}
               onClick={() => setMode(tab.id)}
             >
               {tab.label}
@@ -98,19 +98,43 @@ function App() {
         </section>
 
         <div
-          id="workspace-panel"
+          id="workspace-panel-copilot"
+          className="workspace-panel"
           role="tabpanel"
-          aria-labelledby={`workspace-tab-${mode}`}
+          aria-labelledby="workspace-tab-copilot"
+          hidden={mode !== 'copilot'}
         >
-          {mode === 'copilot' && <CopilotWorkspace />}
+          <CopilotWorkspace />
+        </div>
 
-          {mode === 'research' && <ResearchWorkspace />}
+        <div
+          id="workspace-panel-research"
+          className="workspace-panel"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-research"
+          hidden={mode !== 'research'}
+        >
+          <ResearchWorkspace />
+        </div>
 
-          {mode === 'documents' && (
-            <DocumentRagWorkspace />
-          )}
+        <div
+          id="workspace-panel-documents"
+          className="workspace-panel"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-documents"
+          hidden={mode !== 'documents'}
+        >
+          <DocumentRagWorkspace />
+        </div>
 
-          {mode === 'data' && <DataAgentWorkspace />}
+        <div
+          id="workspace-panel-data"
+          className="workspace-panel"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-data"
+          hidden={mode !== 'data'}
+        >
+          <DataAgentWorkspace />
         </div>
       </main>
     </div>

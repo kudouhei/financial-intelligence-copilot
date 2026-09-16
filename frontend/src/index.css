@@ -100,7 +100,9 @@ textarea {
   font-size: 15px;
   font-weight: 750;
 }
-
+.workspace-panel[hidden] {
+  display: none;
+}
 .workspace-switcher {
   display: flex;
   gap: 4px;
