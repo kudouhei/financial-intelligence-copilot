@@ -3,6 +3,11 @@ from langchain_openai import OpenAIEmbeddings
 
 from ficopilot.api.app import create_app
 from ficopilot.config import Settings
+from ficopilot.copilot.azure_planner import AzureCopilotPlanner
+from ficopilot.copilot.azure_synthesis_provider import (
+    AzureCopilotSynthesisProvider,
+)
+from ficopilot.copilot.service import CopilotOrchestrator
 from ficopilot.data_agent.azure_answer_provider import (
     AzureDataAnswerProvider,
 )
@@ -130,9 +135,42 @@ def create_live_data_service() -> DataAgentService:
     )
 
 
+def create_live_copilot_service(
+    *,
+    research_service: LangGraphResearchService,
+    document_service: DocumentRagService,
+    data_service: DataAgentService,
+) -> CopilotOrchestrator:
+    settings = Settings()
+    model_config = settings.require_azure_openai_config()
+
+    return CopilotOrchestrator(
+        planner=AzureCopilotPlanner(
+            config=model_config,
+        ),
+        synthesis_provider=AzureCopilotSynthesisProvider(
+            config=model_config,
+        ),
+        research_service=research_service,
+        document_service=document_service,
+        data_service=data_service,
+    )
+
+
 def create_live_app() -> FastAPI:
+    research_service = create_live_service()
+    document_service = create_live_document_service()
+    data_service = create_live_data_service()
+
+    copilot_service = create_live_copilot_service(
+        research_service=research_service,
+        document_service=document_service,
+        data_service=data_service,
+    )
+
     return create_app(
-        research_service=create_live_service(),
-        document_service=create_live_document_service(),
-        data_service=create_live_data_service(),
+        research_service=research_service,
+        document_service=document_service,
+        data_service=data_service,
+        copilot_service=copilot_service,
     )
