@@ -104,3 +104,33 @@ class CopilotSynthesisDraft(BaseModel):
             raise ValueError("A supported answer must cite at least one source.")
 
         return self
+
+
+class CopilotAnswer(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: QuestionText
+    answer: NonBlankText
+    coverage: Literal["complete", "partial", "insufficient"]
+    sources: list[CopilotSource]
+    used_modules: list[Literal["research", "document", "data"]]
+    routing_reason: NonBlankText
+    warnings: list[NonBlankText] = Field(default_factory=list)
+    trace_id: NonBlankText
+
+    @model_validator(mode="after")
+    def validate_sources(self) -> Self:
+        source_ids = [source.source_id for source in self.sources]
+
+        if len(source_ids) != len(set(source_ids)):
+            raise ValueError("Final answer sources must be unique.")
+
+        if self.coverage == "insufficient" and self.sources:
+            raise ValueError(
+                "An insufficient answer must not expose unrelated sources."
+            )
+
+        if self.coverage != "insufficient" and not self.sources:
+            raise ValueError("A supported answer must contain at least one source.")
+
+        return self

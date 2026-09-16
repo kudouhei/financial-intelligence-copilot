@@ -2,13 +2,17 @@ from typing import Protocol
 from uuid import uuid4
 
 from ficopilot.contracts import (
+    CopilotAnswer,
     CopilotEvidence,
     CopilotPlan,
     CopilotRequest,
+    CopilotSource,
+    CopilotSynthesisDraft,
     DataQuestion,
     DocumentQuestion,
     ResearchRequest,
 )
+from ficopilot.copilot.evidence import collect_sources
 from ficopilot.data_agent.service import DataAgentService
 from ficopilot.document_rag.service import DocumentRagService
 from ficopilot.research.service import ResearchService
@@ -24,21 +28,35 @@ class CopilotPlanner(Protocol):
     ) -> CopilotPlan: ...
 
 
+class CopilotSynthesisProvider(Protocol):
+    def synthesize(
+        self,
+        *,
+        evidence: CopilotEvidence,
+        sources: list[CopilotSource],
+    ) -> CopilotSynthesisDraft: ...
+
+
 class CopilotOrchestrator:
     def __init__(
         self,
         *,
         planner: CopilotPlanner,
+        synthesis_provider: CopilotSynthesisProvider,
         research_service: ResearchService,
         document_service: DocumentRagService,
         data_service: DataAgentService,
     ) -> None:
         self._planner = planner
+        self._synthesis_provider = synthesis_provider
         self._research_service = research_service
         self._document_service = document_service
         self._data_service = data_service
 
-    def run(self, request: CopilotRequest) -> CopilotEvidence:
+    def gather_evidence(
+        self,
+        request: CopilotRequest,
+    ) -> CopilotEvidence:
         document_context = "No PDF selected."
 
         if request.document_id is not None:
@@ -87,3 +105,65 @@ class CopilotOrchestrator:
             )
 
         return evidence
+
+    def run(self, request: CopilotRequest) -> CopilotAnswer:
+        evidence = self.gather_evidence(request)
+
+        if evidence.plan.cannot_answer:
+            return CopilotAnswer(
+                question=request.question,
+                answer=(
+                    "The available capabilities do not provide enough "
+                    "information to answer this question."
+                ),
+                coverage="insufficient",
+                sources=[],
+                used_modules=[],
+                routing_reason=evidence.plan.routing_reason,
+                warnings=[],
+                trace_id=evidence.trace_id,
+            )
+
+        sources = collect_sources(evidence)
+
+        draft = self._synthesis_provider.synthesize(
+            evidence=evidence,
+            sources=sources,
+        )
+
+        sources_by_id = {source.source_id: source for source in sources}
+        cited_sources = [
+            sources_by_id[source_id] for source_id in draft.cited_source_ids
+        ]
+
+        used_modules = [
+            module
+            for module, question in (
+                ("research", evidence.plan.research_question),
+                ("document", evidence.plan.document_question),
+                ("data", evidence.plan.data_question),
+            )
+            if question is not None
+        ]
+
+        warnings = list(draft.warnings)
+
+        if evidence.research_result is not None:
+            warnings.extend(evidence.research_result.warnings)
+
+        if evidence.document_result is not None:
+            warnings.extend(evidence.document_result.warnings)
+
+        if evidence.data_result is not None:
+            warnings.extend(evidence.data_result.warnings)
+
+        return CopilotAnswer(
+            question=request.question,
+            answer=draft.answer,
+            coverage=draft.coverage,
+            sources=cited_sources,
+            used_modules=used_modules,
+            routing_reason=evidence.plan.routing_reason,
+            warnings=list(dict.fromkeys(warnings)),
+            trace_id=evidence.trace_id,
+        )
