@@ -1,0 +1,85 @@
+.copilot-context-hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  
+  .copilot-answer {
+    display: grid;
+    gap: 22px;
+  }
+  
+  .copilot-answer h3 {
+    margin: 0 0 10px;
+    color: var(--color-text-strong);
+    font-size: 15px;
+  }
+  
+  .copilot-answer-text {
+    margin: 0;
+    color: var(--color-text-body);
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  
+  .module-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .module-chip {
+    display: inline-flex;
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: var(--radius-pill);
+    color: var(--color-accent);
+    background: #eaf2f7;
+    font-size: 12px;
+    font-weight: 750;
+    text-transform: capitalize;
+  }
+  
+  .copilot-sources {
+    display: grid;
+    gap: 12px;
+  }
+  
+  .copilot-source-card {
+    display: grid;
+    gap: 12px;
+  }
+  
+  .copilot-source-card header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  
+  .copilot-source-card a {
+    width: fit-content;
+    color: var(--color-link);
+    font-weight: 700;
+  }
+  
+  .copilot-source-card details p,
+  .copilot-routing-details p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  
+  .copilot-routing-details summary {
+    color: var(--color-link);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  
+  .trace-id {
+    color: var(--color-text-soft);
+    overflow-wrap: anywhere;
+  }
