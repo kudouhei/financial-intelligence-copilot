@@ -1,37 +1,101 @@
-# Financial Intelligence Copilot
+## Financial Intelligence Copilot
 
-An evidence-first financial research application combining web research, document retrieval, and structured data analysis.
+An evidence-grounded financial based intelligence platform that combines multi-step web research, document RAG, and natural-language analytics over structured financial data.
 
-## Start
+The application can automatically route a financial question to one or more specialized capabilities, combine the resulting evidence, and return a traceable answer with web citations, PDF page references, and database provenance.
 
-Copy `.env.example` to `.env` and fill in Tavily plus Azure OpenAI keys, then:
+### Core capabilities
 
-```bash
-./start.sh
-```
+| Workspace | Purpose | Main technologies |
+|---|---|---|
+| **Copilot** | Routes a question to the required capabilities and synthesizes a unified answer | LangGraph, Azure OpenAI, Pydantic |
+| **Research** | Searches external sources, screens candidate documents, extracts evidence, and produces cited answers | LangGraph, Tavily, Azure OpenAI |
+| **Documents** | Uploads and indexes financial PDFs, retrieves relevant passages, and generates page-cited answers | Azure AI Search, embeddings, PyPDF |
+| **Data** | Converts natural-language questions into validated read-only SQL and returns structured financial facts | PostgreSQL, SQLAlchemy, SQLGlot, Azure OpenAI |
 
-This starts the live API (`http://127.0.0.1:8000`) and the Vite frontend (`http://127.0.0.1:5173`). Open the frontend URL. Ctrl+C stops both.
+Each specialized workspace remains independently accessible. The unified Copilot is used when a question requires automatic routing or evidence from multiple sources.
 
-```bash
-./start.sh demo          # no API keys
-./start.sh live-search   # Tavily only, extractive synthesis
-```
+### Example
 
+Question:
+
+> How does the EIB manage liquidity risk, and what was its 2024 liquidity coverage ratio?
+
+The Copilot:
+
+1. routes the narrative part to Document RAG;
+2. routes the quantitative part to the Data Agent;
+3. retrieves passages from the EIB Financial Report;
+4. queries the structured financial database;
+5. combines both results into one answer with page-level provenance.
+
+### Architecture
 
 ```mermaid
-flowchart TD
-    U["用户：提出金融分析问题"] --> UI["React 界面"]
-    UI --> API["FastAPI 应用"]
+flowchart TB
+    User --> UI[React + Vite]
+    UI --> API[FastAPI]
 
-    API --> R["Research 模块<br/>"]
-    API -.-> D["Document RAG 模块<br/>"]
-    API -.-> S["Data / SQL 模块<br/>"]
+    API -->|Copilot| Planner
+    API -->|direct| Research
+    API -->|direct| Documents
+    API -->|direct| Data
 
-    R --> WEB["外部网页、公告、新闻"]
-    D -.-> DOC["上传的年报、PDF、内部文档"]
-    S -.-> DB["数据库中的财务数据"]
+    Planner -.->|only if needed| Research
+    Planner -.->|only if needed| Documents
+    Planner -.->|only if needed| Data
 
-    R --> OUT["答案、证据、数据来源"]
-    D -.-> OUT
-    S -.-> OUT
+    subgraph capabilities [Specialized capabilities]
+        direction LR
+        Research["Research<br/>scope → search → extract"]
+        Documents["Documents<br/>ingest → retrieve → cite"]
+        Data["Data<br/>NL2SQL → validate → query"]
+    end
+
+    Research --> Tavily
+    Documents --> AzureSearch[Azure AI Search]
+    Data --> Postgres[(PostgreSQL)]
+
+    Research -.-> Synthesis
+    Documents -.-> Synthesis
+    Data -.-> Synthesis
+    Synthesis --> Unified[Unified cited answer]
 ```
+
+Solid arrows are the standalone workspace APIs. Dashed arrows are Copilot routing and synthesis: the planner calls only the modules the question needs, then combines their evidence. Traces are sent to LangSmith.
+
+### Design principles
+
+- **Evidence first** — important claims must be supported by retrieved sources or structured records.
+- **Capability separation** — research, document retrieval, and data analysis remain independently testable.
+- **Controlled routing** — the planner selects only the capabilities required for the question.
+- **Safe data access** — generated SQL is validated and executed as read-only.
+- **Graceful refusal** — the system reports insufficient evidence instead of inventing unsupported answers.
+- **Traceability** — answers expose citations, PDF pages, database provenance, warnings, and trace identifiers.
+
+#### Technology stack
+
+##### Backend
+
+- Python 3.12
+- FastAPI
+- LangGraph
+- LangChain
+- Pydantic
+- SQLAlchemy and SQLGlot
+
+##### AI and retrieval
+
+- Azure OpenAI
+- Azure AI Search
+- Tavily Search and Extract
+- LangSmith tracing and evaluation
+
+##### Data and frontend
+
+- PostgreSQL
+- Docker Compose
+- React
+- TypeScript
+- Vite
+
