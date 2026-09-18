@@ -42,9 +42,7 @@ def main() -> None:
         config=settings.require_azure_openai_config(),
     )
 
-    engine = create_database_engine(
-        settings.require_data_agent_database_config()
-    )
+    engine = create_database_engine(settings.require_data_agent_database_config())
 
     data_context = PostgresSchemaCatalog(
         engine=engine,
@@ -61,18 +59,14 @@ def main() -> None:
                 document_id="doc-eib-evaluation",
             ),
             document_context=(
-                "Selected PDF: eib-financial-report-2024.pdf; "
-                "page count: 320."
+                "Selected PDF: eib-financial-report-2024.pdf; page count: 320."
             ),
             expected_routes={"document", "data"},
         ),
         EvaluationCase(
             name="data_only",
             request=CopilotRequest(
-                question=(
-                    "What was the EIB liquidity coverage ratio "
-                    "in 2024?"
-                ),
+                question=("What was the EIB liquidity coverage ratio in 2024?"),
             ),
             document_context="No PDF selected.",
             expected_routes={"data"},
@@ -105,17 +99,11 @@ def main() -> None:
             data_question=plan.data_question,
         )
 
-        passed = (
-            not plan.cannot_answer
-            and actual_routes == case.expected_routes
-        )
+        passed = not plan.cannot_answer and actual_routes == case.expected_routes
 
         all_passed = all_passed and passed
 
-        print(
-            f"{case.name}: "
-            f"{'PASS' if passed else 'FAIL'}"
-        )
+        print(f"{case.name}: {'PASS' if passed else 'FAIL'}")
         print(f"  expected={sorted(case.expected_routes)}")
         print(f"  actual={sorted(actual_routes)}")
         print(f"  reason={plan.routing_reason}")

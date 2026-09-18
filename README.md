@@ -203,7 +203,16 @@ The `demo` and `live-search` modes configure only the Research service. Use `liv
 
 ### Verification
 
-Run the backend test and lint checks:
+Auto-fix lint and formatting locally before pushing:
+
+```bash
+uv run ruff check . --fix
+uv run ruff format .
+```
+
+`pre-commit` already runs the same Ruff fix and format hooks on commit. Install the hooks once with `uv run pre-commit install`.
+
+Then run the backend test and lint checks that CI uses:
 
 ```bash
 uv run pytest
