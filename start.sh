@@ -9,6 +9,11 @@ API_HOST="${API_HOST:-127.0.0.1}"
 API_PORT="${API_PORT:-8000}"
 FRONTEND_HOST="${FRONTEND_HOST:-127.0.0.1}"
 FRONTEND_PORT="${FRONTEND_PORT:-5173}"
+UV_ENV_ARGS=()
+
+if [[ -f .env ]]; then
+  UV_ENV_ARGS=(--env-file .env)
+fi
 
 case "$MODE" in
   live)
@@ -52,7 +57,9 @@ echo "API:      http://${API_HOST}:${API_PORT}"
 echo "Frontend: http://${FRONTEND_HOST}:${FRONTEND_PORT}"
 echo "Press Ctrl+C to stop."
 
-uv run uvicorn "$APP" --factory --reload --host "$API_HOST" --port "$API_PORT" &
+uv run "${UV_ENV_ARGS[@]}" uvicorn "$APP" --factory --reload \
+  --host "$API_HOST" \
+  --port "$API_PORT" &
 API_PID=$!
 
 health_url="http://${API_HOST}:${API_PORT}/health"
