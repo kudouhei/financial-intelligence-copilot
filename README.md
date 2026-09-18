@@ -99,3 +99,122 @@ Solid arrows are the standalone workspace APIs. Dashed arrows are Copilot routin
 - TypeScript
 - Vite
 
+### Local development
+
+#### Prerequisites
+
+- Python 3.12
+- [uv](https://docs.astral.sh/uv/)
+- Node.js 22 and npm
+- Docker with Docker Compose
+- Azure OpenAI chat and embedding deployments
+- Azure AI Search
+- Tavily API access
+
+#### 1. Install dependencies
+
+```bash
+uv sync
+npm --prefix frontend install
+```
+
+#### 2. Configure the environment
+
+Copy the example configuration:
+
+```bash
+cp .env.example .env
+```
+
+Configure the following services in `.env`:
+
+| Variable | Purpose |
+|---|---|
+| `TAVILY_API_KEY` | External financial research and page extraction |
+| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI resource endpoint |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI authentication |
+| `AZURE_OPENAI_DEPLOYMENT` | Chat-model deployment |
+| `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | Embedding-model deployment |
+| `AZURE_AI_SEARCH_ENDPOINT` | Document vector-index endpoint |
+| `AZURE_AI_SEARCH_API_KEY` | Search administration and query access |
+| `AZURE_AI_SEARCH_INDEX_NAME` | Document chunk index |
+| `DATABASE_URL` | Database initialization and seed connection |
+| `DATA_AGENT_DATABASE_URL` | Data Agent query connection |
+| `LANGSMITH_API_KEY` | Optional tracing and evaluation |
+| `LANGSMITH_PROJECT` | LangSmith trace project |
+
+Do not commit `.env` or any API keys.
+
+#### 3. Start PostgreSQL
+
+```bash
+docker compose up -d postgres
+docker compose ps
+```
+
+The container exposes PostgreSQL on local port `5433` to avoid conflicts with an existing installation on port `5432`.
+
+#### 4. Initialize and seed the database
+
+```bash
+uv run python scripts/init_database.py
+uv run python scripts/seed_financial_data.py
+uv run python scripts/smoke_database.py
+```
+
+The seed operation inserts a small, deterministic EIB financial dataset used by the Data Agent demonstrations. It is idempotent: running it again updates existing records instead of duplicating them.
+
+Expected connection check:
+
+```text
+database=ficopilot
+user=ficopilot
+```
+
+#### 5. Start the application
+
+For the complete application:
+
+```bash
+./start.sh live
+```
+
+Open:
+
+- Frontend: `http://127.0.0.1:5173`
+- FastAPI documentation: `http://127.0.0.1:8000/docs`
+- Health check: `http://127.0.0.1:8000/health`
+
+Press `Ctrl+C` to stop the API and frontend. PostgreSQL continues running in Docker and can be stopped with:
+
+```bash
+docker compose stop postgres
+```
+
+#### Runtime modes
+
+| Command | Available capability | External requirements |
+|---|---|---|
+| `./start.sh demo` | Deterministic Research demo | None |
+| `./start.sh live-search` | Tavily research with extractive synthesis | Tavily |
+| `./start.sh live` | Copilot, Research, Documents and Data | Azure OpenAI, Azure AI Search, Tavily and PostgreSQL |
+
+The `demo` and `live-search` modes configure only the Research service. Use `live` for the complete multi-capability application.
+
+### Verification
+
+Run the backend test and lint checks:
+
+```bash
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+```
+
+Build the frontend:
+
+```bash
+npm --prefix frontend run build
+```
+
+A successful frontend build performs both TypeScript compilation and the Vite production build.
