@@ -1,3 +1,4 @@
+from pathlib import Path
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -101,3 +102,25 @@ def test_research_endpoint_generates_trace_id() -> None:
 
     _, service_trace_id = research_service.calls[0]
     assert service_trace_id == generated_trace_id
+
+
+def test_app_can_serve_frontend_build(
+    tmp_path: Path,
+) -> None:
+    index_file = tmp_path / "index.html"
+    index_file.write_text(
+        "<html><body>Financial Intelligence Copilot</body></html>",
+        encoding="utf-8",
+    )
+
+    app = create_app(frontend_dist_dir=tmp_path)
+
+    with TestClient(app) as client:
+        frontend_response = client.get("/")
+        health_response = client.get("/health")
+
+    assert frontend_response.status_code == 200
+    assert "Financial Intelligence Copilot" in frontend_response.text
+
+    assert health_response.status_code == 200
+    assert health_response.json() == {"status": "ok"}

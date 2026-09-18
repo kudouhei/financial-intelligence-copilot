@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import Annotated
 from uuid import uuid4
 
 from fastapi import FastAPI, Header, HTTPException, status
+from fastapi.staticfiles import StaticFiles
 
 from ficopilot.api.copilot_routes import create_copilot_router
 from ficopilot.api.data_routes import create_data_router
@@ -19,6 +21,7 @@ def create_app(
     document_service: DocumentRagService | None = None,
     data_service: DataAgentService | None = None,
     copilot_service: CopilotOrchestrator | None = None,
+    frontend_dist_dir: Path | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Financial Intelligence Copilot API",
@@ -68,5 +71,24 @@ def create_app(
             copilot_service=copilot_service,
         )
     )
+
+    if frontend_dist_dir is not None:
+        resolved_frontend_dist = frontend_dist_dir.resolve()
+        index_file = resolved_frontend_dist / "index.html"
+
+        if not index_file.is_file():
+            raise RuntimeError(
+                "Frontend distribution does not contain index.html: "
+                f"{resolved_frontend_dist}"
+            )
+
+        app.mount(
+            "/",
+            StaticFiles(
+                directory=str(resolved_frontend_dist),
+                html=True,
+            ),
+            name="frontend",
+        )
 
     return app

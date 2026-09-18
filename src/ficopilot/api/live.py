@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from langchain_openai import OpenAIEmbeddings
 
@@ -158,6 +160,12 @@ def create_live_copilot_service(
 
 
 def create_live_app() -> FastAPI:
+    settings = Settings()
+
+    frontend_dist_value = (settings.frontend_dist_dir or "").strip()
+
+    frontend_dist_dir = Path(frontend_dist_value) if frontend_dist_value else None
+
     research_service = create_live_service()
     document_service = create_live_document_service()
     data_service = create_live_data_service()
@@ -173,4 +181,5 @@ def create_live_app() -> FastAPI:
         document_service=document_service,
         data_service=data_service,
         copilot_service=copilot_service,
+        frontend_dist_dir=frontend_dist_dir,
     )

@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     database_url: SecretStr | None = None
     data_agent_database_url: SecretStr | None = None
 
+    # The directory containing the frontend dist files.
+    frontend_dist_dir: str | None = None
+
     def require_tavily_api_key(self) -> str:
         if self.tavily_api_key is None:
             raise RuntimeError("TAVILY_API_KEY is required for live research.")
