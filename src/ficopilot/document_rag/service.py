@@ -12,6 +12,10 @@ from ficopilot.contracts import (
     RetrievedChunk,
 )
 from ficopilot.document_rag.ingestion import PdfIngestionService
+from ficopilot.document_rag.registry import (
+    DocumentRegistry,
+    InMemoryDocumentRegistry,
+)
 from ficopilot.document_rag.vector_index import DocumentIndex
 
 
@@ -34,17 +38,19 @@ class DocumentRagService:
         ingestion_service: PdfIngestionService,
         index: DocumentIndex,
         answer_provider: DocumentAnswerProvider,
+        registry: DocumentRegistry | None = None,
     ) -> None:
         self._ingestion_service = ingestion_service
         self._index = index
         self._answer_provider = answer_provider
+        self._registry = registry or InMemoryDocumentRegistry()
 
         # Registered documents available for question answering.
-        self._documents: dict[str, DocumentRecord] = {}
+        # self._documents: dict[str, DocumentRecord] = {}
 
         # In-process ingestion cache:
         # sha256 -> previous upload result
-        self._uploads_by_sha256: dict[str, DocumentUploadResult] = {}
+        # self._uploads_by_sha256: dict[str, DocumentUploadResult] = {}
 
     def ingest_pdf(
         self,
@@ -59,7 +65,7 @@ class DocumentRagService:
             file_bytes=file_bytes,
         )
 
-        cached_result = self._uploads_by_sha256.get(identity.sha256)
+        cached_result = self._registry.find_by_sha256(identity.sha256)
 
         # The same PDF has already been extracted, chunked and indexed
         # during the lifetime of this service instance.
@@ -87,7 +93,7 @@ class DocumentRagService:
         document = ingestion_result.document
 
         # Register the document so it can be used by ask().
-        self._documents[document.document_id] = document
+        # self._documents[document.document_id] = document
 
         upload_result = DocumentUploadResult(
             document=document,
@@ -98,7 +104,8 @@ class DocumentRagService:
 
         # Only cache after extraction and indexing succeed.
         # This prevents a partially indexed document from being cached.
-        self._uploads_by_sha256[document.sha256] = upload_result
+        # self._uploads_by_sha256[document.sha256] = upload_result
+        self._registry.save(upload_result)
 
         return upload_result
 
@@ -178,9 +185,9 @@ class DocumentRagService:
         self,
         document_id: str,
     ) -> DocumentRecord:
-        record = self._documents.get(document_id)
+        record = self._registry.get_by_id(document_id)
 
         if record is None:
             raise DocumentNotFoundError(f"Document not found: {document_id}")
 
-        return record.model_copy(deep=True)
+        return record
