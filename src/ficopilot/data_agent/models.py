@@ -13,15 +13,12 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import (
-    DeclarativeBase,
     Mapped,
     mapped_column,
     relationship,
 )
 
-
-class Base(DeclarativeBase):
-    pass
+from ficopilot.persistence import Base
 
 
 class Entity(Base):
