@@ -29,6 +29,9 @@ from ficopilot.document_rag.azure_search_index import (
 from ficopilot.document_rag.ingestion import (
     PdfIngestionService,
 )
+from ficopilot.document_rag.postgres_registry import (
+    PostgresDocumentRegistry,
+)
 from ficopilot.document_rag.service import (
     DocumentRagService,
 )
@@ -88,6 +91,11 @@ def create_live_document_service() -> DocumentRagService:
     chat_config = settings.require_azure_openai_config()
     embedding_config = settings.require_azure_openai_embedding_config()
     search_config = settings.require_azure_ai_search_config()
+    registry_config = settings.require_document_registry_database_config()
+
+    registry_engine = create_database_engine(
+        registry_config,
+    )
 
     embeddings = OpenAIEmbeddings(
         model=embedding_config.deployment,
@@ -108,6 +116,9 @@ def create_live_document_service() -> DocumentRagService:
         ),
         answer_provider=AzureDocumentAnswerProvider(
             config=chat_config,
+        ),
+        registry=PostgresDocumentRegistry(
+            engine=registry_engine,
         ),
     )
 

@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     database_url: SecretStr | None = None
     data_agent_database_url: SecretStr | None = None
 
+    document_registry_database_url: SecretStr | None = None
+
     # The directory containing the frontend dist files.
     frontend_dist_dir: str | None = None
 
@@ -167,5 +169,19 @@ class Settings(BaseSettings):
 
         if not url:
             raise RuntimeError("DATA_AGENT_DATABASE_URL is required.")
+
+        return DatabaseConfig(url=url)
+
+    def require_document_registry_database_config(
+        self,
+    ) -> DatabaseConfig:
+        url = (
+            self.document_registry_database_url.get_secret_value()
+            if self.document_registry_database_url
+            else ""
+        ).strip()
+
+        if not url:
+            raise RuntimeError("DOCUMENT_REGISTRY_DATABASE_URL is required.")
 
         return DatabaseConfig(url=url)
