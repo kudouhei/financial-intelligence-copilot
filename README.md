@@ -1,6 +1,6 @@
 ## Financial Intelligence Copilot
 
-An evidence-grounded financial based intelligence platform that combines multi-step web research, document RAG, and natural-language analytics over structured financial data.
+An evidence-grounded financial intelligence platform that combines multi-step web research, document RAG, and natural-language analytics over structured financial data.
 
 The application can automatically route a financial question to one or more specialized capabilities, combine the resulting evidence, and return a traceable answer with web citations, PDF page references, and database provenance.
 
@@ -10,7 +10,7 @@ The application can automatically route a financial question to one or more spec
 |---|---|---|
 | **Copilot** | Routes a question to the required capabilities and synthesizes a unified answer | LangGraph, Azure OpenAI, Pydantic |
 | **Research** | Searches external sources, screens candidate documents, extracts evidence, and produces cited answers | LangGraph, Tavily, Azure OpenAI |
-| **Documents** | Uploads and indexes financial PDFs, retrieves relevant passages, and generates page-cited answers | Azure AI Search, embeddings, PyPDF |
+| **Documents** | Uploads and indexes financial PDFs, retrieves relevant passages, and generates page-cited answers | Azure AI Search, PostgreSQL document registry, Azure OpenAI embeddings, PyPDF |
 | **Data** | Converts natural-language questions into validated read-only SQL and returns structured financial facts | PostgreSQL, SQLAlchemy, SQLGlot, Azure OpenAI |
 
 Each specialized workspace remains independently accessible. The unified Copilot is used when a question requires automatic routing or evidence from multiple sources.
@@ -63,6 +63,28 @@ flowchart TB
 ```
 
 Solid arrows are the standalone workspace APIs. Dashed arrows are Copilot routing and synthesis: the planner calls only the modules the question needs, then combines their evidence. Traces are sent to LangSmith.
+
+#### Document persistence model
+
+Document RAG separates durable metadata from searchable content:
+
+```mermaid
+flowchart LR
+    PDF[Uploaded PDF] --> Hash[SHA-256 identity]
+    Hash --> Registry[(PostgreSQL document registry)]
+    PDF --> Extract[Extract and chunk]
+    Extract --> Embed[Azure OpenAI embeddings]
+    Embed --> Search[(Azure AI Search)]
+
+    Question --> Registry
+    Question --> Search
+    Search --> Answer[Page-cited answer]
+```
+
+PostgreSQL stores document identity, ingestion metadata, page counts, chunk
+counts, and warnings. Azure AI Search stores the extracted chunks and vector
+embeddings. The API container remains stateless, so document retrieval and
+deduplication survive container restarts and scale-to-zero events.
 
 ### Design principles
 
@@ -139,7 +161,8 @@ Configure the following services in `.env`:
 | `AZURE_AI_SEARCH_API_KEY` | Search administration and query access |
 | `AZURE_AI_SEARCH_INDEX_NAME` | Document chunk index |
 | `DATABASE_URL` | Database initialization and seed connection |
-| `DATA_AGENT_DATABASE_URL` | Data Agent query connection |
+| `DATA_AGENT_DATABASE_URL` | Restricted read-only PostgreSQL connection used by the Data Agent |
+| `DOCUMENT_REGISTRY_DATABASE_URL` | PostgreSQL connection used to persist uploaded-document identity and ingestion metadata |
 | `LANGSMITH_API_KEY` | Optional tracing and evaluation |
 | `LANGSMITH_PROJECT` | LangSmith trace project |
 
@@ -161,6 +184,10 @@ uv run python scripts/init_database.py
 uv run python scripts/seed_financial_data.py
 uv run python scripts/smoke_database.py
 ```
+
+Database initialization creates both the structured financial-data schema and
+the persistent document registry. The seed command loads only the deterministic
+financial facts used by the Data Agent demonstration.
 
 The seed operation inserts a small, deterministic EIB financial dataset used by the Data Agent demonstrations. It is idempotent: running it again updates existing records instead of duplicating them.
 
