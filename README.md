@@ -176,8 +176,15 @@ Configure the following services in `.env`:
 | `DOCUMENT_REGISTRY_DATABASE_URL` | PostgreSQL connection used to persist uploaded-document identity and ingestion metadata |
 | `LANGSMITH_API_KEY` | Optional tracing and evaluation |
 | `LANGSMITH_PROJECT` | LangSmith trace project |
+| `APP_ACCESS_USERNAME` | Optional username for the public/demo access gate |
+| `APP_ACCESS_PASSWORD` | Optional password for the public/demo access gate |
 
 Do not commit `.env` or any API keys.
+
+When both access-gate variables are configured, the browser displays an HTTP
+Basic authentication prompt. Every route except `/health` is protected before
+it can invoke an LLM, search provider, or database service. Leave both variables
+empty for unrestricted local development.
 
 #### 3. Start PostgreSQL
 

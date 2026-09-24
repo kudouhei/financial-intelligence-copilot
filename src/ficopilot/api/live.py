@@ -193,4 +193,5 @@ def create_live_app() -> FastAPI:
         data_service=data_service,
         copilot_service=copilot_service,
         frontend_dist_dir=frontend_dist_dir,
+        access_config=settings.get_app_access_config(),
     )

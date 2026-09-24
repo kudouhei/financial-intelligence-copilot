@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi.testclient import TestClient
 
 from ficopilot.api.app import create_app
+from ficopilot.config import AppAccessConfig
 from ficopilot.contracts import ResearchRequest, ResearchResult
 
 
@@ -124,3 +125,68 @@ def test_app_can_serve_frontend_build(
 
     assert health_response.status_code == 200
     assert health_response.json() == {"status": "ok"}
+
+
+def test_access_gate_rejects_request_before_service_runs() -> None:
+    research_service = FakeResearchService()
+    app = create_app(
+        research_service=research_service,
+        access_config=AppAccessConfig(
+            username="demo-user",
+            password="demo-password",
+        ),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/research",
+            json={
+                "question": "What are the main risks facing Company A?",
+                "as_of": "2026-08-29T12:00:00Z",
+                "max_sources": 5,
+            },
+        )
+
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"].startswith("Basic")
+    assert research_service.calls == []
+
+
+def test_access_gate_accepts_valid_credentials() -> None:
+    research_service = FakeResearchService()
+    app = create_app(
+        research_service=research_service,
+        access_config=AppAccessConfig(
+            username="demo-user",
+            password="demo-password",
+        ),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/research",
+            auth=("demo-user", "demo-password"),
+            json={
+                "question": "What are the main risks facing Company A?",
+                "as_of": "2026-08-29T12:00:00Z",
+                "max_sources": 5,
+            },
+        )
+
+    assert response.status_code == 200
+    assert len(research_service.calls) == 1
+
+
+def test_health_check_remains_public_when_access_gate_is_enabled() -> None:
+    app = create_app(
+        access_config=AppAccessConfig(
+            username="demo-user",
+            password="demo-password",
+        ),
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}

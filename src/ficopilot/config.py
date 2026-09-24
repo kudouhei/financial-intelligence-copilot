@@ -38,6 +38,12 @@ class DatabaseConfig:
     url: str
 
 
+@dataclass(frozen=True, slots=True)
+class AppAccessConfig:
+    username: str
+    password: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -59,8 +65,33 @@ class Settings(BaseSettings):
 
     document_registry_database_url: SecretStr | None = None
 
+    app_access_username: str | None = None
+    app_access_password: SecretStr | None = None
+
     # The directory containing the frontend dist files.
     frontend_dist_dir: str | None = None
+
+    def get_app_access_config(self) -> AppAccessConfig | None:
+        username = (self.app_access_username or "").strip()
+        password = (
+            self.app_access_password.get_secret_value()
+            if self.app_access_password
+            else ""
+        )
+
+        if bool(username) != bool(password):
+            raise RuntimeError(
+                "APP_ACCESS_USERNAME and APP_ACCESS_PASSWORD must either "
+                "both be configured or both be omitted."
+            )
+
+        if not username:
+            return None
+
+        return AppAccessConfig(
+            username=username,
+            password=password,
+        )
 
     def require_tavily_api_key(self) -> str:
         if self.tavily_api_key is None:

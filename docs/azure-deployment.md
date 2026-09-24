@@ -190,6 +190,25 @@ Expected result:
 {"status":"ok"}
 ```
 
+Public demo deployments should configure `APP_ACCESS_USERNAME` and
+`APP_ACCESS_PASSWORD` as secret-backed environment variables. The application
+then protects the frontend, API routes, and API documentation with HTTP Basic
+authentication while leaving `/health` public for platform probes. This gate is
+implemented in the application and remains portable if the container moves to
+another hosting provider.
+
+Confirm that an unauthenticated request is rejected before testing with valid
+credentials:
+
+```bash
+curl -i "$APP_URL/api/v1/copilot"
+curl -u "$APP_ACCESS_USERNAME:$APP_ACCESS_PASSWORD" "$APP_URL/"
+```
+
+The first request should return `401 Unauthorized`. Do not put the actual
+password in this runbook or shell history; load it from a secure local secret
+source when performing the authenticated check.
+
 Then verify one representative request for each affected capability. A release
 that changes shared application wiring should cover Document RAG, the Data
 Agent, and the unified Copilot rather than relying only on the health endpoint.
@@ -260,4 +279,3 @@ rollback alone cannot safely reverse an incompatible schema change.
 - Raw uploaded PDFs are not retained in Blob Storage; the current durable
   stores are the PostgreSQL document registry and Azure AI Search index.
 - Infrastructure is not yet represented as Terraform or Bicep.
-

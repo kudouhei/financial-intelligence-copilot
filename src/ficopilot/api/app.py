@@ -5,9 +5,11 @@ from uuid import uuid4
 from fastapi import FastAPI, Header, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 
+from ficopilot.api.access import BasicAccessMiddleware
 from ficopilot.api.copilot_routes import create_copilot_router
 from ficopilot.api.data_routes import create_data_router
 from ficopilot.api.document_routes import create_document_router
+from ficopilot.config import AppAccessConfig
 from ficopilot.contracts import ResearchRequest, ResearchResult
 from ficopilot.copilot.service import CopilotOrchestrator
 from ficopilot.data_agent.service import DataAgentService
@@ -22,11 +24,19 @@ def create_app(
     data_service: DataAgentService | None = None,
     copilot_service: CopilotOrchestrator | None = None,
     frontend_dist_dir: Path | None = None,
+    access_config: AppAccessConfig | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Financial Intelligence Copilot API",
         version="0.1.0",
     )
+
+    if access_config is not None:
+        app.add_middleware(
+            BasicAccessMiddleware,
+            username=access_config.username,
+            password=access_config.password,
+        )
 
     @app.get("/health", tags=["system"])
     def health_check() -> dict[str, str]:
