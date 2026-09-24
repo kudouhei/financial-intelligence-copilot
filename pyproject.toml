@@ -1,7 +1,7 @@
 [project]
 name = "ficopilot"
 version = "0.1.0"
-description = "An evidence-grounded financial based intelligence copilot combining agentic research, document RAG, and natural-language analytics over structured financial data."
+description = "An evidence-grounded financial intelligence copilot combining multi-step research, document RAG, and natural-language analytics over structured financial data."
 readme = "README.md"
 authors = [
     { name = "Hei", email = "peiyu4150@gmail.com" }

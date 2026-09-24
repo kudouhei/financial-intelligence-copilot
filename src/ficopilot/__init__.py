@@ -1,2 +1,5 @@
+from importlib.metadata import version
+
+
 def main() -> None:
-    print("Hello from ficopilot!")
+    print(f"ficopilot {version('ficopilot')}")

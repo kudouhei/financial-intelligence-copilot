@@ -1,9 +1,9 @@
 from ficopilot import main
 
 
-def test_main_prints_welcome_message(capsys) -> None:
+def test_main_prints_package_version(capsys) -> None:
     main()
 
     captured = capsys.readouterr()
 
-    assert captured.out == "Hello from ficopilot!\n"
+    assert captured.out == "ficopilot 0.1.0\n"

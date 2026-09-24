@@ -45,13 +45,6 @@ class DocumentRagService:
         self._answer_provider = answer_provider
         self._registry = registry or InMemoryDocumentRegistry()
 
-        # Registered documents available for question answering.
-        # self._documents: dict[str, DocumentRecord] = {}
-
-        # In-process ingestion cache:
-        # sha256 -> previous upload result
-        # self._uploads_by_sha256: dict[str, DocumentUploadResult] = {}
-
     def ingest_pdf(
         self,
         *,
@@ -67,8 +60,7 @@ class DocumentRagService:
 
         cached_result = self._registry.find_by_sha256(identity.sha256)
 
-        # The same PDF has already been extracted, chunked and indexed
-        # during the lifetime of this service instance.
+        # The same PDF has already been extracted, chunked and indexed.
         if cached_result is not None:
             return cached_result.model_copy(
                 update={"cache_hit": True},
@@ -92,9 +84,6 @@ class DocumentRagService:
 
         document = ingestion_result.document
 
-        # Register the document so it can be used by ask().
-        # self._documents[document.document_id] = document
-
         upload_result = DocumentUploadResult(
             document=document,
             chunk_count=len(ingestion_result.chunks),
@@ -102,9 +91,8 @@ class DocumentRagService:
             cache_hit=False,
         )
 
-        # Only cache after extraction and indexing succeed.
-        # This prevents a partially indexed document from being cached.
-        # self._uploads_by_sha256[document.sha256] = upload_result
+        # Register only after extraction and indexing succeed so an incomplete
+        # ingestion is never exposed as a cache hit.
         self._registry.save(upload_result)
 
         return upload_result
