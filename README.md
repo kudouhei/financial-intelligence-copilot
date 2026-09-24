@@ -121,6 +121,17 @@ deduplication survive container restarts and scale-to-zero events.
 - TypeScript
 - Vite
 
+### Deployment
+
+The application is packaged as a multi-stage Docker image and deployed to Azure
+Container Apps. Azure Container Registry stores immutable, Git-tagged images;
+Key Vault and a user-assigned managed identity provide runtime secrets; Log
+Analytics and LangSmith provide platform and LLM observability.
+
+See the [Azure deployment runbook](docs/azure-deployment.md) for the deployment
+topology, release procedure, verification checks, troubleshooting, and rollback
+process.
+
 ### Local development
 
 #### Prerequisites
