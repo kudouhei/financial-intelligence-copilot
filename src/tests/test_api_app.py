@@ -190,3 +190,21 @@ def test_health_check_remains_public_when_access_gate_is_enabled() -> None:
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_access_gate_rejects_invalid_credentials() -> None:
+    app = create_app(
+        access_config=AppAccessConfig(
+            username="demo-user",
+            password="demo-password",
+        ),
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/docs",
+            auth=("demo-user", "wrong-password"),
+        )
+
+    assert response.status_code == 401
+    assert response.headers["cache-control"] == "no-store"
